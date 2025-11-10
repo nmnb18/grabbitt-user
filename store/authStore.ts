@@ -27,15 +27,29 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
   register: async (payload: UserPayload) => {
     try {
-      const response = await axios.post(`${API_URL}/register`, {
-        ...payload
-      });
+      set({ loading: true });
 
-      const { uid } = response.data;
-      const user = { uid, ...payload };
+      const response = await axios.post(`${API_URL}/register-seller`, payload);
+
+      const { uid, token, ...userData } = response.data;
+
+      // Create user object with all the data
+      const user: User = {
+        uid,
+        token,
+        email: payload.email,
+        name: payload.name,
+        shopName: payload.shopName,
+        phone: payload.phone,
+        // Include additional fields if returned by backend
+        ...userData
+      };
+
+      // Store user data in AsyncStorage
       await AsyncStorage.setItem("user", JSON.stringify(user));
-      set({ user });
+      set({ user, loading: false });
     } catch (err: any) {
+      set({ loading: false });
       console.error("Register error:", err.response?.data || err.message);
       throw new Error(err.response?.data?.message || "Registration failed");
     }
@@ -43,7 +57,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
   login: async (email, password, role) => {
     try {
-      const response = await axios.post(`${API_URL}/login`, {
+      set({ loading: true });
+      const response = await axios.post(`${API_URL}/login-seller`, {
         email,
         password,
         role
@@ -51,8 +66,9 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
       const user = response.data;
       await AsyncStorage.setItem("user", JSON.stringify(user));
-      set({ user });
+      set({ user, loading: false });
     } catch (err: any) {
+      set({ loading: false });
       console.error("Login error:", err.response?.data || err.message);
       throw new Error(err.response?.data?.message || "Login failed");
     }
@@ -60,11 +76,13 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
   fetchUserDetails: async (uid) => {
     try {
+      set({ loading: true });
       const response = await axios.get(`${API_URL}/getuserdetails?uid=${uid}`);
       const user = response.data;
-      set({ user });
+      set({ user, loading: false });
       await AsyncStorage.setItem("user", JSON.stringify(user));
     } catch (err: any) {
+      set({ loading: false });
       console.error("Fetch user error:", err.response?.data || err.message);
       throw new Error(err.response?.data?.message || "Failed to fetch user details");
     }
@@ -72,24 +90,29 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
   logout: async (uid: string) => {
     try {
-      await axios.post(`${API_URL}/logout`, {
+      set({ loading: true });
+      await axios.post(`${API_URL}/logout-seller`, {
         uid
       });
       await AsyncStorage.removeItem("user");
-      set({ user: null });
+      set({ user: null, loading: false });
     } catch (err) {
+      set({ loading: false });
       console.error("Logout error:", err);
     }
   },
 
   loadUser: async () => {
     try {
+      set({ loading: true });
       const userStr = await AsyncStorage.getItem("user");
       if (userStr) {
         const user = JSON.parse(userStr);
         set({ user });
       }
+      set({ loading: false });
     } catch (error) {
+      set({ loading: false });
       console.error("Load user error:", error);
     }
   },

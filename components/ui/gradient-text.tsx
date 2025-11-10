@@ -5,7 +5,7 @@ import React from 'react';
 import { StyleSheet, Text } from 'react-native';
 
 interface GradientTextProps {
-    children: string;
+    children: React.ReactNode;
     style?: any;
     colors?: string[];
 }

@@ -1,8 +1,10 @@
+import { Button } from '@/components/ui/paper-button';
 import { useTheme } from '@/hooks/use-theme-color';
+import { AppStyles, Colors } from '@/utils/theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import axios from 'axios';
 import Constants from 'expo-constants';
-import { LinearGradient } from 'expo-linear-gradient';
+import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   Alert,
@@ -13,10 +15,10 @@ import {
   View,
 } from 'react-native';
 import {
-  Button,
   Card,
   Chip,
   Divider,
+  IconButton,
   SegmentedButtons,
   Text,
   TextInput
@@ -29,13 +31,14 @@ type QRMode = 'dynamic' | 'static' | 'static_with_code';
 
 export default function SellerGenerateQR() {
   const { user } = useAuthStore();
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [qrMode, setQRMode] = useState<QRMode>('dynamic');
   const [hiddenCode, setHiddenCode] = useState('');
   const [expiryMinutes, setExpiryMinutes] = useState('60');
   const [qrImage, setQrImage] = useState<string | null>(null);
   const [qrData, setQrData] = useState<any>(null);
-  const sellerTheme = useTheme();
+  const theme = useTheme();
 
   const handleGenerateQR = async () => {
     if (qrMode === 'static_with_code' && !hiddenCode) {
@@ -56,18 +59,19 @@ export default function SellerGenerateQR() {
       }
 
       const response = await axios.post(
-        `${API_URL}/api/qr/generate`,
+        `${API_URL}/generate-qr`,
         payload,
         {
-          headers: { Authorization: `Bearer ${user?.token}` }
+          headers: { Authorization: `Bearer ${user?.idToken}` }
         }
       );
-
-      setQrImage(response.data.qr_image);
-      setQrData(response.data);
+      const resData = response.data.data;
+      setQrImage(resData.qr_code_base64);
+      setQrData(resData);
 
       Alert.alert('Success', 'QR code generated successfully!');
     } catch (error: any) {
+      console.log(error)
       Alert.alert('Error', error.response?.data?.detail || 'Failed to generate QR code');
     } finally {
       setLoading(false);
@@ -87,6 +91,16 @@ export default function SellerGenerateQR() {
     }
   };
 
+  const handleMenuPress = () => {
+    // Handle hamburger menu press
+    console.log('Menu pressed');
+  };
+
+  const handleNotificationPress = () => {
+    // Handle notification icon press
+    console.log('Notifications pressed');
+  };
+
   const getModeDescription = () => {
     switch (qrMode) {
       case 'dynamic':
@@ -101,19 +115,32 @@ export default function SellerGenerateQR() {
   };
 
   return (
-    <View style={styles.container}>
-      {/* Header with Gradient */}
-      <LinearGradient
-        colors={['#0D7377', '#14FFEC']}
-        style={styles.header}
-      >
-        <Text variant="headlineMedium" style={styles.headerTitle}>
-          Generate QR Code
-        </Text>
-        <Text variant="bodyMedium" style={styles.headerSubtitle}>
-          Create a QR code for your customers
-        </Text>
-      </LinearGradient>
+    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+      {/* Fixed Header */}
+      <View style={styles.header}>
+        <IconButton
+          icon="menu"
+          iconColor={Colors.light.text}
+          size={24}
+          onPress={handleMenuPress}
+          style={styles.headerIcon}
+        />
+
+        <View style={styles.logoContainer}>
+          <Image
+            source={require('@/assets/images/logo.png')}
+            style={styles.logo}
+          />
+        </View>
+
+        <IconButton
+          icon="bell-outline"
+          iconColor={Colors.light.text}
+          size={24}
+          onPress={handleNotificationPress}
+          style={styles.headerIcon}
+        />
+      </View>
 
       <ScrollView
         style={styles.content}
@@ -124,7 +151,7 @@ export default function SellerGenerateQR() {
         <Card style={styles.card}>
           <Card.Content>
             <Text variant="titleMedium" style={styles.cardTitle}>
-              🎯 QR Code Type
+              QR Code Type
             </Text>
             <Divider style={styles.divider} />
 
@@ -140,6 +167,7 @@ export default function SellerGenerateQR() {
                   value: 'dynamic',
                   label: 'Dynamic',
                   icon: 'clock-outline',
+
                 },
                 {
                   value: 'static',
@@ -152,6 +180,13 @@ export default function SellerGenerateQR() {
                   icon: 'lock',
                 },
               ]}
+              theme={{
+                colors: {
+                  secondaryContainer: Colors.light.surface, // Selected background
+                  onSecondaryContainer: Colors.light.secondary, // Selected text color
+                  primary: Colors.light.secondary
+                },
+              }}
               style={styles.segmentedButtons}
             />
 
@@ -160,7 +195,7 @@ export default function SellerGenerateQR() {
                 <MaterialCommunityIcons
                   name="information"
                   size={20}
-                  color={sellerTheme.colors.primary}
+                  color={theme.colors.primary}
                 />
                 <Text variant="bodySmall" style={styles.infoText}>
                   {getModeDescription()}
@@ -174,7 +209,7 @@ export default function SellerGenerateQR() {
         <Card style={styles.card}>
           <Card.Content>
             <Text variant="titleMedium" style={styles.cardTitle}>
-              ⚙️ Settings
+              Settings
             </Text>
             <Divider style={styles.divider} />
 
@@ -187,6 +222,8 @@ export default function SellerGenerateQR() {
                 keyboardType="numeric"
                 style={styles.input}
                 left={<TextInput.Icon icon="timer" />}
+                outlineColor={Colors.light.outline}
+                activeOutlineColor={theme.colors.accent}
               />
             )}
 
@@ -199,16 +236,16 @@ export default function SellerGenerateQR() {
                 style={styles.input}
                 left={<TextInput.Icon icon="key" />}
                 placeholder="Enter a secret code..."
+                outlineColor={Colors.light.outline}
+                activeOutlineColor={theme.colors.accent}
               />
             )}
 
             <Button
-              mode="contained"
+              variant="contained"
               onPress={handleGenerateQR}
               loading={loading}
               disabled={loading}
-              style={styles.generateButton}
-              contentStyle={styles.generateButtonContent}
               icon="qrcode-plus"
             >
               Generate QR Code
@@ -219,10 +256,7 @@ export default function SellerGenerateQR() {
         {/* Generated QR Code */}
         {qrImage && (
           <Card style={styles.qrCard}>
-            <LinearGradient
-              colors={['#323E48', '#5C6B7A']}
-              style={styles.qrCardGradient}
-            >
+            <View style={[styles.qrCardContent]}>
               <View style={styles.qrContainer}>
                 <Image
                   source={{ uri: qrImage }}
@@ -235,31 +269,33 @@ export default function SellerGenerateQR() {
                 <Chip
                   icon="check-circle"
                   style={styles.qrChip}
-                  textStyle={styles.qrChipText}
                 >
                   Active
                 </Chip>
-                <Text variant="bodySmall" style={styles.qrText}>
+                <Text variant="bodySmall" >
                   QR Code ID: {qrData?.qr_id?.substring(0, 8)}...
                 </Text>
                 {qrMode === 'dynamic' && qrData?.expires_at && (
-                  <Text variant="bodySmall" style={styles.qrText}>
+                  <Text variant="bodySmall">
                     Expires: {new Date(qrData.expires_at).toLocaleString()}
                   </Text>
                 )}
                 {qrMode === 'static_with_code' && (
                   <View style={styles.codeContainer}>
-                    <MaterialCommunityIcons name="key" size={16} color="#FFFFFF" />
-                    <Text variant="bodySmall" style={styles.qrText}>
+                    <MaterialCommunityIcons name="key" size={16} color={Colors.light.onPrimary} />
+                    <Text variant="bodySmall">
                       Code: {hiddenCode}
                     </Text>
                   </View>
                 )}
               </View>
-            </LinearGradient>
+            </View>
 
-            <Card.Actions>
-              <Button onPress={handleShare} icon="share-variant">
+            <Card.Actions style={styles.cardActions}>
+              <Button
+                onPress={handleShare}
+                icon="share-variant"
+              >
                 Share
               </Button>
               <Button
@@ -279,12 +315,12 @@ export default function SellerGenerateQR() {
         <Card style={styles.card}>
           <Card.Content>
             <Text variant="titleMedium" style={styles.cardTitle}>
-              📱 How to Use
+              How to Use
             </Text>
             <Divider style={styles.divider} />
 
             <View style={styles.instructionItem}>
-              <View style={styles.instructionNumber}>
+              <View style={[styles.instructionNumber, { backgroundColor: Colors.light.primary }]}>
                 <Text variant="labelLarge" style={styles.instructionNumberText}>1</Text>
               </View>
               <Text variant="bodyMedium" style={styles.instructionText}>
@@ -293,7 +329,7 @@ export default function SellerGenerateQR() {
             </View>
 
             <View style={styles.instructionItem}>
-              <View style={styles.instructionNumber}>
+              <View style={[styles.instructionNumber, { backgroundColor: Colors.light.secondary }]}>
                 <Text variant="labelLarge" style={styles.instructionNumberText}>2</Text>
               </View>
               <Text variant="bodyMedium" style={styles.instructionText}>
@@ -303,7 +339,7 @@ export default function SellerGenerateQR() {
 
             {qrMode === 'static_with_code' && (
               <View style={styles.instructionItem}>
-                <View style={styles.instructionNumber}>
+                <View style={[styles.instructionNumber, { backgroundColor: Colors.light.accent }]}>
                   <Text variant="labelLarge" style={styles.instructionNumberText}>3</Text>
                 </View>
                 <Text variant="bodyMedium" style={styles.instructionText}>
@@ -313,7 +349,7 @@ export default function SellerGenerateQR() {
             )}
 
             <View style={styles.instructionItem}>
-              <View style={styles.instructionNumber}>
+              <View style={[styles.instructionNumber, { backgroundColor: Colors.light.success }]}>
                 <Text variant="labelLarge" style={styles.instructionNumberText}>
                   {qrMode === 'static_with_code' ? '4' : '3'}
                 </Text>
@@ -336,79 +372,96 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   header: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
     paddingTop: 60,
-    paddingBottom: 32,
-    paddingHorizontal: 20,
-    borderBottomLeftRadius: 24,
-    borderBottomRightRadius: 24,
+    paddingHorizontal: 16,
+    paddingBottom: 16,
+  },
+  headerIcon: {
+    margin: 0,
+  },
+  logoContainer: {
+    flex: 1,
+    alignItems: 'center',
+  },
+  logo: {
+    height: 60,
+    width: 160
   },
   headerTitle: {
-    color: '#FFFFFF',
     fontWeight: '700',
-    marginBottom: 4,
-  },
-  headerSubtitle: {
-    color: '#FFFFFF',
-    opacity: 0.9,
+    color: Colors.light.text,
   },
   content: {
     flex: 1,
   },
   scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: 16,
+    paddingHorizontal: AppStyles.spacing.md,
+    paddingTop: AppStyles.spacing.md,
   },
   card: {
-    marginBottom: 16,
-    borderRadius: 16,
-    backgroundColor: '#FFFFFF',
+    marginBottom: AppStyles.spacing.md,
+    borderRadius: AppStyles.card.borderRadius,
+    backgroundColor: Colors.light.surface,
+    borderWidth: 1,
+    borderColor: Colors.light.outline,
   },
   cardTitle: {
     fontWeight: '600',
-    marginBottom: 12,
+    marginBottom: AppStyles.spacing.sm,
+    color: Colors.light.text,
   },
   divider: {
-    marginBottom: 16,
+    marginBottom: AppStyles.spacing.md,
+    backgroundColor: Colors.light.outline,
   },
   segmentedButtons: {
-    marginBottom: 16,
+    marginBottom: AppStyles.spacing.md,
+    backgroundColor: 'white'
   },
   infoCard: {
     elevation: 0,
+    backgroundColor: Colors.light.surfaceVariant,
   },
   infoContent: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: AppStyles.spacing.sm,
   },
   infoText: {
     flex: 1,
+    color: Colors.light.text,
   },
   input: {
-    marginBottom: 16,
-    backgroundColor: '#FFFFFF',
+    marginBottom: AppStyles.spacing.md,
+    backgroundColor: Colors.light.surface,
   },
   generateButton: {
-    borderRadius: 12,
+    borderRadius: AppStyles.card.borderRadius,
+    backgroundColor: Colors.light.primary,
   },
   generateButtonContent: {
     paddingVertical: 8,
   },
   qrCard: {
-    marginBottom: 16,
-    borderRadius: 16,
-    backgroundColor: '#FFFFFF',
+    marginBottom: AppStyles.spacing.md,
+    borderRadius: AppStyles.card.borderRadius,
+    backgroundColor: Colors.light.surface,
+    borderWidth: 1,
+    borderColor: Colors.light.outline,
     overflow: 'hidden',
   },
-  qrCardGradient: {
-    padding: 24,
+  qrCardContent: {
+    padding: AppStyles.spacing.lg,
     alignItems: 'center',
   },
   qrContainer: {
-    backgroundColor: '#FFFFFF',
-    padding: 16,
-    borderRadius: 16,
-    marginBottom: 16,
+    backgroundColor: Colors.light.surface,
+    padding: AppStyles.spacing.md,
+    borderRadius: AppStyles.card.borderRadius,
+    marginBottom: AppStyles.spacing.md,
   },
   qrImage: {
     width: 200,
@@ -416,27 +469,27 @@ const styles = StyleSheet.create({
   },
   qrInfo: {
     alignItems: 'center',
-    gap: 8,
+    gap: AppStyles.spacing.sm,
   },
   qrChip: {
     backgroundColor: 'rgba(255, 255, 255, 0.2)',
-  },
-  qrChipText: {
-    color: '#FFFFFF',
-  },
-  qrText: {
-    color: '#FFFFFF',
-    opacity: 0.9,
+    borderWidth: 1,
+    borderColor: Colors.light.primary
   },
   codeContainer: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 8,
+    gap: AppStyles.spacing.sm,
+  },
+  cardActions: {
+    paddingHorizontal: AppStyles.spacing.md,
+    paddingBottom: AppStyles.spacing.md,
+    justifyContent: 'space-between'
   },
   instructionItem: {
     flexDirection: 'row',
     alignItems: 'center',
-    marginBottom: 16,
+    marginBottom: AppStyles.spacing.md,
   },
   instructionNumber: {
     width: 32,
@@ -444,16 +497,17 @@ const styles = StyleSheet.create({
     borderRadius: 16,
     justifyContent: 'center',
     alignItems: 'center',
-    marginRight: 12,
+    marginRight: AppStyles.spacing.md,
   },
   instructionNumberText: {
-    color: '#FFFFFF',
+    color: Colors.light.onPrimary,
     fontWeight: '600',
   },
   instructionText: {
     flex: 1,
+    color: Colors.light.text,
   },
   bottomSpacer: {
-    height: 80,
+    height: AppStyles.spacing.lg,
   },
 });

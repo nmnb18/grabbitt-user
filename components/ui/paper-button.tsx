@@ -1,6 +1,7 @@
 import { ThemedText } from '@/components/themed-text';
 import { useThemeColor } from '@/hooks/use-theme-color';
 import { AppStyles } from '@/utils/theme';
+import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { LinearGradient } from 'expo-linear-gradient';
 import React from 'react';
 import {
@@ -18,6 +19,10 @@ export type ButtonProps = {
     variant?: 'contained' | 'outlined' | 'text';
     size?: 'medium' | 'large';
     fullWidth?: boolean;
+    icon?: string; // MaterialCommunityIcons name
+    iconPosition?: 'left' | 'right';
+    iconSize?: number;
+    iconColor?: string;
 };
 
 export function Button({
@@ -28,6 +33,10 @@ export function Button({
     variant = 'contained',
     size = 'medium',
     fullWidth = false,
+    icon,
+    iconPosition = 'left',
+    iconSize = 20,
+    iconColor,
 }: ButtonProps) {
     const backgroundColor = useThemeColor({}, 'background');
     const textColor = useThemeColor({}, 'text');
@@ -37,6 +46,59 @@ export function Button({
     const isOutlined = variant === 'outlined';
     const isText = variant === 'text';
     const isLarge = size === 'large';
+
+    // Determine icon color based on variant
+    const getIconColor = () => {
+        if (iconColor) return iconColor;
+        if (isContained) return '#FFFFFF';
+        if (isOutlined) return textColor;
+        return primaryColor;
+    };
+
+    const renderContent = () => {
+        const content = (
+            <>
+                {icon && iconPosition === 'left' && !loading && (
+                    <MaterialCommunityIcons
+                        name={icon as any}
+                        size={iconSize}
+                        color={getIconColor()}
+                        style={styles.iconLeft}
+                    />
+                )}
+
+                {loading ? (
+                    <ActivityIndicator
+                        size="small"
+                        color={isContained ? '#FFFFFF' : primaryColor}
+                    />
+                ) : (
+                    <ThemedText
+                        style={[
+                            styles.buttonText,
+                            isContained && styles.containedButtonText,
+                            isOutlined && styles.outlineButtonText,
+                            isText && [styles.textButtonText, { color: primaryColor }],
+                            isLarge && styles.largeButtonText,
+                        ]}
+                    >
+                        {children}
+                    </ThemedText>
+                )}
+
+                {icon && iconPosition === 'right' && !loading && (
+                    <MaterialCommunityIcons
+                        name={icon as any}
+                        size={iconSize}
+                        color={getIconColor()}
+                        style={styles.iconRight}
+                    />
+                )}
+            </>
+        );
+
+        return content;
+    };
 
     if (isContained) {
         return (
@@ -58,28 +120,16 @@ export function Button({
                     style={[
                         styles.gradientBackground,
                         isLarge && styles.largeGradient,
+                        styles.contentContainer,
                     ]}
                 >
-                    {loading ? (
-                        <ActivityIndicator size="small" color="#FFFFFF" />
-                    ) : (
-                        <ThemedText
-                            style={[
-                                styles.buttonText,
-                                styles.containedButtonText,
-                                isLarge && styles.largeButtonText,
-                            ]}
-                        >
-                            {children}
-                        </ThemedText>
-                    )}
+                    {renderContent()}
                 </LinearGradient>
             </TouchableOpacity>
         );
     }
 
     if (isOutlined) {
-        // Outline variant with exact website styling
         return (
             <TouchableOpacity
                 onPress={onPress}
@@ -100,27 +150,16 @@ export function Button({
                         styles.outlineButtonInner,
                         { backgroundColor },
                         isLarge && styles.largeOutlineButton,
+                        styles.contentContainer,
                     ]}>
-                        {loading ? (
-                            <ActivityIndicator size="small" color={textColor} />
-                        ) : (
-                            <ThemedText
-                                style={[
-                                    styles.outlineButtonText,
-                                    { color: textColor },
-                                    isLarge && styles.largeButtonText,
-                                ]}
-                            >
-                                {children}
-                            </ThemedText>
-                        )}
+                        {renderContent()}
                     </View>
                 </LinearGradient>
             </TouchableOpacity>
         );
     }
 
-    // Text variant - simple text button with primary color
+    // Text variant
     return (
         <TouchableOpacity
             onPress={onPress}
@@ -129,21 +168,10 @@ export function Button({
                 styles.textButtonContainer,
                 fullWidth && styles.fullWidth,
                 (disabled || loading) && styles.disabledButton,
+                styles.contentContainer,
             ]}
         >
-            {loading ? (
-                <ActivityIndicator size="small" color={primaryColor} />
-            ) : (
-                <ThemedText
-                    style={[
-                        styles.textButtonText,
-                        { color: primaryColor },
-                        isLarge && styles.largeButtonText,
-                    ]}
-                >
-                    {children}
-                </ThemedText>
-            )}
+            {renderContent()}
         </TouchableOpacity>
     );
 }
@@ -167,11 +195,11 @@ const styles = StyleSheet.create({
     },
     outlineButtonInner: {
         borderRadius: 10, // 12 - 2 = 10
-        paddingVertical: 10, // h-10 (2.5rem)
-        paddingHorizontal: 24, // px-6 (1.5rem)
+        paddingVertical: 10,
+        paddingHorizontal: 24,
         alignItems: 'center',
         justifyContent: 'center',
-        minHeight: 40, // 2.5rem = 40px
+        minHeight: 40,
     },
     largeOutlineButton: {
         paddingVertical: 14,
@@ -198,6 +226,11 @@ const styles = StyleSheet.create({
     largeButton: {
         minHeight: 56,
     },
+    contentContainer: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     buttonText: {
         fontFamily: 'Inter',
         fontWeight: '500',
@@ -219,6 +252,12 @@ const styles = StyleSheet.create({
     },
     largeButtonText: {
         fontSize: 18,
+    },
+    iconLeft: {
+        marginRight: 8,
+    },
+    iconRight: {
+        marginLeft: 8,
     },
     fullWidth: {
         width: '100%',

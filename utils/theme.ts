@@ -257,4 +257,7 @@ export const AppStyles = {
       lineHeight: 24,
     },
   },
+  colors: {
+    ...Colors
+  }
 };
