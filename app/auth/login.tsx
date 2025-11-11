@@ -45,7 +45,7 @@ export default function SellerLogin() {
         setLoading(true);
         try {
             await login(email, password, 'seller');
-            router.replace('/(tabs)/dashboard');
+            router.replace('/(drawer)');
         } catch (error: any) {
             Alert.alert('Error', error.message);
         } finally {

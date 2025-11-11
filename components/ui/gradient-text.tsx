@@ -39,14 +39,12 @@ const styles = StyleSheet.create({
     maskText: {
         backgroundColor: 'transparent',
         fontFamily: 'Poppins',
-        fontSize: 24,
         fontWeight: '600',
         textAlign: 'center',
     },
     gradientText: {
         backgroundColor: 'transparent',
         fontFamily: 'Poppins',
-        fontSize: 24,
         fontWeight: '600',
         textAlign: 'center',
     },

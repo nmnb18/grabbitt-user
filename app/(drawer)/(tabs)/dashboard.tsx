@@ -1,26 +1,30 @@
+import { QrCode } from '@/components/shared/qr-code';
+import { GradientIcon } from '@/components/ui/gradient-icon';
+import { GradientText } from '@/components/ui/gradient-text';
+import { Button } from '@/components/ui/paper-button';
 import { useTheme } from '@/hooks/use-theme-color';
+import api from '@/services/axiosInstance';
+import { SUBSCRIPTION_PLANS } from '@/utils/constant';
 import { AppStyles, Colors } from '@/utils/theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
-import { useRouter } from 'expo-router';
+import { useNavigation, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
   Alert,
-  Image,
   RefreshControl,
   ScrollView,
   StyleSheet,
-  View,
+  View
 } from 'react-native';
 import {
   ActivityIndicator,
   Card,
   Chip,
-  IconButton,
   Surface,
   Text
 } from 'react-native-paper';
-import { useAuthStore } from '../../store/authStore';
+import { useAuthStore } from '../../../store/authStore';
 
 const API_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || process.env.EXPO_PUBLIC_BACKEND_URL;
 
@@ -35,13 +39,13 @@ interface StatCardProps {
 const StatCard = ({ icon, value, label, color, gradientColors }: StatCardProps) => (
   <Card style={styles.statCard}>
     <View style={[styles.statContent]}>
-      <MaterialCommunityIcons name={icon as any} size={32} color={color} />
-      <Text variant="headlineMedium" style={[styles.statValue, { color }]}>
+      <GradientIcon size={32} name={icon as any} />
+      <GradientText colors={gradientColors} style={styles.statValue}>
         {value}
-      </Text>
-      <Text variant="labelLarge" style={[styles.statLabel, { color }]}>
+      </GradientText>
+      <GradientText colors={gradientColors} style={styles.statLabel}>
         {label}
-      </Text>
+      </GradientText>
     </View>
   </Card>
 );
@@ -70,12 +74,14 @@ const ActionCard = ({ icon, title, subtitle, onPress, iconColor }: ActionCardPro
 );
 
 export default function SellerDashboard() {
-  const { user, logout } = useAuthStore();
+  const { user, idToken } = useAuthStore();
   const router = useRouter();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [profile, setProfile] = useState<any>(null);
+  const [activeQR, setActiveQR] = useState<any>(null);
+  const navigation = useNavigation<any>();
   const theme = useTheme();
 
   useEffect(() => {
@@ -83,38 +89,69 @@ export default function SellerDashboard() {
   }, []);
 
   const loadData = async () => {
-    setTimeout(() => {
+    try {
+      setLoading(true);
+
+      // 1️⃣ Get Firebase auth token (adjust based on your store)
+      // if (!token) {
+      //   Alert.alert('Error', 'Not authenticated. Please login again.');
+      //   return;
+      // }
+
+      // 2️⃣ Axios request to seller-stats endpoint
+      const response = await api.get(`${API_URL}/dashboard/seller-stats`, {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+          Accept: 'application/json',
+        },
+        timeout: 10000,
+      });
+
+      const { data } = response;
+      if (!data?.success) {
+        Alert.alert('Error', data?.error || 'Failed to load dashboard stats');
+        return;
+      }
+
+      // 3️⃣ Update local state
+      const statsData = data.data;
+      setStats({
+        total_users: statsData.total_users,
+        active_qr_codes: statsData.active_qr_codes,
+        total_scanned: statsData.total_scanned,
+        total_points_issued: statsData.total_points_issued,
+        total_redemptions: statsData.total_redemptions,
+        seller_name: statsData.seller_name,
+      });
+
+      const qrResponse = await api.get(`${API_URL}/qr-code/get-active-qr`, {
+        headers: {
+          Authorization: `Bearer ${idToken}`,
+        },
+        timeout: 10000,
+      });
+
+      if (qrResponse.data?.success) {
+        setActiveQR(qrResponse.data.data);
+        //setSellerPlan(qrResponse.data.data.plan);
+      }
+
+    } catch (error: any) {
+      console.error('Error loading dashboard:', error);
+      if (error.response) {
+        Alert.alert('Server Error', error.response.data?.error || 'Failed to load data from server');
+      } else {
+        Alert.alert('Network Error', 'Please check your internet connection and try again.');
+      }
+    } finally {
       setLoading(false);
-    }, 2000)
-    // API calls would go here
+      setRefreshing(false);
+    }
   };
 
   const onRefresh = () => {
     setRefreshing(true);
     loadData();
-  };
-
-  const handleLogout = async () => {
-    Alert.alert('Logout', 'Are you sure you want to logout?', [
-      { text: 'Cancel', style: 'cancel' },
-      {
-        text: 'Logout',
-        onPress: async () => {
-          await logout(user?.uid ?? '');
-          router.replace('/auth/login');
-        },
-      },
-    ]);
-  };
-
-  const handleMenuPress = () => {
-    // Handle hamburger menu press
-    console.log('Menu pressed');
-  };
-
-  const handleNotificationPress = () => {
-    // Handle notification icon press
-    console.log('Notifications pressed');
   };
 
   if (loading) {
@@ -127,31 +164,6 @@ export default function SellerDashboard() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      {/* Fixed Header */}
-      <View style={styles.header}>
-        <IconButton
-          icon="menu"
-          iconColor={Colors.light.text}
-          size={24}
-          onPress={handleMenuPress}
-          style={styles.headerIcon}
-        />
-
-        <View style={styles.logoContainer}>
-          <Image
-            source={require('@/assets/images/logo.png')}
-            style={styles.logo}
-          />
-        </View>
-
-        <IconButton
-          icon="bell-outline"
-          iconColor={Colors.light.text}
-          size={24}
-          onPress={handleNotificationPress}
-          style={styles.headerIcon}
-        />
-      </View>
 
       <ScrollView
         style={styles.content}
@@ -165,23 +177,26 @@ export default function SellerDashboard() {
         <View style={styles.welcomeSection}>
           <View style={styles.welcomeTextContainer}>
             <Text variant="labelLarge" style={styles.greeting}>Welcome back,</Text>
-            <Text variant="headlineSmall" style={styles.shopName}>{user?.shopName}</Text>
+            <Text variant="headlineSmall" style={styles.shopName}>{user?.user.seller_profile?.shop_name}</Text>
             <Chip
               mode="flat"
               icon="store"
               style={styles.categoryChip}
               textStyle={styles.chipText}
             >
-              {profile?.category || 'General'}
+              {SUBSCRIPTION_PLANS[user?.user.seller_profile?.subscription_tier ?? 'free'].name}
             </Chip>
+
+
           </View>
-          <IconButton
-            icon="logout"
-            iconColor={Colors.light.error}
-            size={24}
-            onPress={handleLogout}
-            style={styles.logoutButton}
-          />
+          {user?.user.seller_profile?.subscription_tier === 'free' && (
+            <Button
+              variant="contained"
+              onPress={() => router.push('/(drawer)/subscription')}
+            >
+              Upgrade Plan
+            </Button>
+          )}
         </View>
 
         {/* Stats Grid */}
@@ -220,7 +235,14 @@ export default function SellerDashboard() {
           </View>
         </View>
 
+        <View style={styles.section}>
+          {activeQR && (
+            <QrCode qrMode={activeQR.qr_type} qrData={activeQR} />
+          )}
+        </View>
+
         {/* Quick Actions */}
+
         <View style={styles.section}>
           <Text variant="titleLarge" style={[styles.sectionTitle]}>
             Quick Actions
@@ -266,24 +288,6 @@ const styles = StyleSheet.create({
     justifyContent: 'center',
     alignItems: 'center',
   },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    paddingTop: 60,
-    paddingHorizontal: 16,
-  },
-  headerIcon: {
-    margin: 0,
-  },
-  logoContainer: {
-    flex: 1,
-    alignItems: 'center',
-  },
-  logo: {
-    width: 160,
-    height: 60,
-  },
   content: {
     flex: 1,
   },
@@ -293,7 +297,7 @@ const styles = StyleSheet.create({
   },
   welcomeSection: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
+    alignItems: 'center',
     justifyContent: 'space-between',
     marginBottom: AppStyles.spacing.lg,
     padding: AppStyles.spacing.md,
@@ -323,10 +327,6 @@ const styles = StyleSheet.create({
     color: Colors.light.text,
     fontSize: 12,
   },
-  logoutButton: {
-    margin: 0,
-    backgroundColor: `${Colors.light.error}15`,
-  },
   statsSection: {
     marginBottom: AppStyles.spacing.lg,
   },
@@ -349,15 +349,17 @@ const styles = StyleSheet.create({
     borderRadius: AppStyles.card.borderRadius,
   },
   statValue: {
-    color: Colors.light.onPrimary,
+    color: Colors.light.onSurface,
     fontWeight: '700',
     marginTop: AppStyles.spacing.xs,
+    fontSize: 24
   },
   statLabel: {
-    color: Colors.light.onPrimary,
+    color: Colors.light.onSurface,
     opacity: 0.9,
     marginTop: AppStyles.spacing.xs,
     textAlign: 'center',
+    fontSize: 16
   },
   section: {
     marginBottom: AppStyles.spacing.lg,

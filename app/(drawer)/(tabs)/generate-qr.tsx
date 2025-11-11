@@ -1,8 +1,9 @@
+import { QrCode } from '@/components/shared/qr-code';
 import { Button } from '@/components/ui/paper-button';
 import { useTheme } from '@/hooks/use-theme-color';
+import api from '@/services/axiosInstance';
 import { AppStyles, Colors } from '@/utils/theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
-import axios from 'axios';
 import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -16,27 +17,26 @@ import {
 } from 'react-native';
 import {
   Card,
-  Chip,
   Divider,
   IconButton,
   SegmentedButtons,
   Text,
   TextInput
 } from 'react-native-paper';
-import { useAuthStore } from '../../store/authStore';
+import { useAuthStore } from '../../../store/authStore';
 
 const API_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || process.env.EXPO_PUBLIC_BACKEND_URL;
 
 type QRMode = 'dynamic' | 'static' | 'static_with_code';
 
 export default function SellerGenerateQR() {
-  const { user } = useAuthStore();
+  const { idToken } = useAuthStore();
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [qrMode, setQRMode] = useState<QRMode>('dynamic');
   const [hiddenCode, setHiddenCode] = useState('');
   const [expiryMinutes, setExpiryMinutes] = useState('60');
-  const [qrImage, setQrImage] = useState<string | null>(null);
+  //const [qrImage, setQrImage] = useState<string | null>(null);
   const [qrData, setQrData] = useState<any>(null);
   const theme = useTheme();
 
@@ -58,15 +58,15 @@ export default function SellerGenerateQR() {
         payload.hidden_code = hiddenCode;
       }
 
-      const response = await axios.post(
-        `${API_URL}/generate-qr`,
+      const response = await api.post(
+        `${API_URL}/qr-code/generate-qr`,
         payload,
         {
-          headers: { Authorization: `Bearer ${user?.idToken}` }
+          headers: { Authorization: `Bearer ${idToken}` }
         }
       );
       const resData = response.data.data;
-      setQrImage(resData.qr_code_base64);
+      //setQrImage(resData.qr_code_base64);
       setQrData(resData);
 
       Alert.alert('Success', 'QR code generated successfully!');
@@ -79,7 +79,7 @@ export default function SellerGenerateQR() {
   };
 
   const handleShare = async () => {
-    if (!qrImage) return;
+    //if (!qrImage) return;
 
     try {
       await Share.share({
@@ -159,7 +159,7 @@ export default function SellerGenerateQR() {
               value={qrMode}
               onValueChange={(value) => {
                 setQRMode(value as QRMode);
-                setQrImage(null);
+                //setQrImage(null);
                 setQrData(null);
               }}
               buttons={[
@@ -254,7 +254,7 @@ export default function SellerGenerateQR() {
         </Card>
 
         {/* Generated QR Code */}
-        {qrImage && (
+        {/* {qrImage && (
           <Card style={styles.qrCard}>
             <View style={[styles.qrCardContent]}>
               <View style={styles.qrContainer}>
@@ -309,8 +309,10 @@ export default function SellerGenerateQR() {
               </Button>
             </Card.Actions>
           </Card>
+        )} */}
+        {qrData && (
+          <QrCode qrMode={qrMode} qrData={qrData} />
         )}
-
         {/* Usage Instructions */}
         <Card style={styles.card}>
           <Card.Content>
@@ -329,7 +331,7 @@ export default function SellerGenerateQR() {
             </View>
 
             <View style={styles.instructionItem}>
-              <View style={[styles.instructionNumber, { backgroundColor: Colors.light.secondary }]}>
+              <View style={[styles.instructionNumber, { backgroundColor: Colors.light.primary }]}>
                 <Text variant="labelLarge" style={styles.instructionNumberText}>2</Text>
               </View>
               <Text variant="bodyMedium" style={styles.instructionText}>
@@ -339,7 +341,7 @@ export default function SellerGenerateQR() {
 
             {qrMode === 'static_with_code' && (
               <View style={styles.instructionItem}>
-                <View style={[styles.instructionNumber, { backgroundColor: Colors.light.accent }]}>
+                <View style={[styles.instructionNumber, { backgroundColor: Colors.light.primary }]}>
                   <Text variant="labelLarge" style={styles.instructionNumberText}>3</Text>
                 </View>
                 <Text variant="bodyMedium" style={styles.instructionText}>
@@ -349,7 +351,7 @@ export default function SellerGenerateQR() {
             )}
 
             <View style={styles.instructionItem}>
-              <View style={[styles.instructionNumber, { backgroundColor: Colors.light.success }]}>
+              <View style={[styles.instructionNumber, { backgroundColor: Colors.light.primary }]}>
                 <Text variant="labelLarge" style={styles.instructionNumberText}>
                   {qrMode === 'static_with_code' ? '4' : '3'}
                 </Text>
