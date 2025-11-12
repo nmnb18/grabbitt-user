@@ -2,43 +2,52 @@ import { QrCode } from '@/components/shared/qr-code';
 import { Button } from '@/components/ui/paper-button';
 import { useTheme } from '@/hooks/use-theme-color';
 import api from '@/services/axiosInstance';
+import { useAuthStore } from '@/store/authStore';
 import { AppStyles, Colors } from '@/utils/theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
-import { useRouter } from 'expo-router';
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
   Alert,
-  Image,
   ScrollView,
-  Share,
   StyleSheet,
-  View,
+  View
 } from 'react-native';
 import {
   Card,
   Divider,
-  IconButton,
+  HelperText,
   SegmentedButtons,
   Text,
   TextInput
 } from 'react-native-paper';
-import { useAuthStore } from '../../../store/authStore';
 
 const API_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || process.env.EXPO_PUBLIC_BACKEND_URL;
 
 type QRMode = 'dynamic' | 'static' | 'static_with_code';
 
 export default function SellerGenerateQR() {
-  const { idToken } = useAuthStore();
-  const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [qrMode, setQRMode] = useState<QRMode>('dynamic');
   const [hiddenCode, setHiddenCode] = useState('');
-  const [expiryMinutes, setExpiryMinutes] = useState('60');
+  const [expiryMinutes, setExpiryMinutes] = useState('24');
+  const [pointValue, setPointsValue] = useState('10');
   //const [qrImage, setQrImage] = useState<string | null>(null);
   const [qrData, setQrData] = useState<any>(null);
   const theme = useTheme();
+  const { user } = useAuthStore();
+  const sellerProfile = user?.user?.seller_profile;
+
+  useEffect(() => {
+    loadData()
+  }, []);
+
+  const loadData = async () => {
+    const qrResponse = await api.get(`${API_URL}/qr-code/get-active-qr`);
+    if (qrResponse.data?.success) {
+      setQrData(qrResponse.data.data);
+    }
+  };
 
   const handleGenerateQR = async () => {
     if (qrMode === 'static_with_code' && !hiddenCode) {
@@ -46,6 +55,59 @@ export default function SellerGenerateQR() {
       return;
     }
 
+
+    const tier = sellerProfile?.subscription_tier ?? 'free';
+    if (tier === 'free') {
+      setLoading(true);
+      try {
+        const qrStats = await api.get(`${API_URL}/qr-code/count-monthly`);
+        const total = qrStats.data?.count || 0;
+        setLoading(false);
+        if (total >= 10) {
+          Alert.alert(
+            'Limit Reached',
+            'You have reached your 10 QR/month limit. Upgrade to Pro or Premium for unlimited QR generation.'
+          );
+          return;
+        }
+      } catch (e) {
+        setLoading(false);
+        console.warn('QR count check failed:', e);
+      }
+    }
+
+    // Pro Plan: only registered QR type allowed
+    if (tier === 'pro' && qrMode !== sellerProfile?.qr_code_type) {
+      Alert.alert(
+        'Plan Restriction',
+        `You can only generate ${sellerProfile?.qr_code_type?.toUpperCase()} QRs in your current Pro plan.`
+      );
+      return;
+    }
+
+    if (qrMode && (tier === 'pro' || tier === 'premium')) {
+      Alert.alert('Warning', 'Looks like you already have an active QR code. Creating a new one will overwrite the old one. Do you want to proceed?', [
+        { text: 'Cancel', style: 'cancel' },
+        {
+          text: 'Continue',
+          onPress: async () => {
+            await generateQR();
+          },
+        },
+      ]);
+    } else if (qrMode && tier === 'free') {
+      Alert.alert(
+        'Plan Restriction',
+        `You already have an active QR code. Upgrade your plan to generate multiple QR codes simultaneously.`
+      );
+    } else {
+      generateQR()
+    }
+
+
+  }
+
+  const generateQR = async () => {
     setLoading(true);
     try {
       const payload: any = {
@@ -53,52 +115,23 @@ export default function SellerGenerateQR() {
       };
 
       if (qrMode === 'dynamic') {
-        payload.expires_in = parseInt(expiryMinutes);
+        payload.expires_in_minutes = parseInt(expiryMinutes) * 60;
       } else if (qrMode === 'static_with_code') {
         payload.hidden_code = hiddenCode;
       }
+      payload.points_value = parseInt(pointValue);
 
-      const response = await api.post(
+      await api.post(
         `${API_URL}/qr-code/generate-qr`,
-        payload,
-        {
-          headers: { Authorization: `Bearer ${idToken}` }
-        }
+        payload
       );
-      const resData = response.data.data;
-      //setQrImage(resData.qr_code_base64);
-      setQrData(resData);
-
+      loadData();
       Alert.alert('Success', 'QR code generated successfully!');
     } catch (error: any) {
-      console.log(error)
       Alert.alert('Error', error.response?.data?.detail || 'Failed to generate QR code');
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleShare = async () => {
-    //if (!qrImage) return;
-
-    try {
-      await Share.share({
-        message: `Scan this QR code to earn loyalty points!`,
-        title: 'Loyalty QR Code',
-      });
-    } catch (error) {
-      console.error('Share error:', error);
-    }
-  };
-
-  const handleMenuPress = () => {
-    // Handle hamburger menu press
-    console.log('Menu pressed');
-  };
-
-  const handleNotificationPress = () => {
-    // Handle notification icon press
-    console.log('Notifications pressed');
   };
 
   const getModeDescription = () => {
@@ -116,32 +149,6 @@ export default function SellerGenerateQR() {
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-      {/* Fixed Header */}
-      <View style={styles.header}>
-        <IconButton
-          icon="menu"
-          iconColor={Colors.light.text}
-          size={24}
-          onPress={handleMenuPress}
-          style={styles.headerIcon}
-        />
-
-        <View style={styles.logoContainer}>
-          <Image
-            source={require('@/assets/images/logo.png')}
-            style={styles.logo}
-          />
-        </View>
-
-        <IconButton
-          icon="bell-outline"
-          iconColor={Colors.light.text}
-          size={24}
-          onPress={handleNotificationPress}
-          style={styles.headerIcon}
-        />
-      </View>
-
       <ScrollView
         style={styles.content}
         showsVerticalScrollIndicator={false}
@@ -214,19 +221,35 @@ export default function SellerGenerateQR() {
             <Divider style={styles.divider} />
 
             {qrMode === 'dynamic' && (
-              <TextInput
-                label="Expiry Time (minutes)"
+              <><TextInput
+                label="Expiry Time (hours)"
                 value={expiryMinutes}
                 onChangeText={setExpiryMinutes}
                 mode="outlined"
                 keyboardType="numeric"
                 style={styles.input}
+                disabled={sellerProfile?.subscription_tier === 'free'}
                 left={<TextInput.Icon icon="timer" />}
                 outlineColor={Colors.light.outline}
                 activeOutlineColor={theme.colors.accent}
               />
+                <HelperText type='info' style={styles.helperText}>{sellerProfile?.subscription_tier === 'free'
+                  ? 'For free tier, QR codes expire automatically in 24 hours.'
+                  : 'Set how long your dynamic QR remains active before expiring.'}</HelperText>
+              </>
             )}
-
+            <TextInput
+              label="Points Value"
+              value={pointValue}
+              onChangeText={setPointsValue}
+              mode="outlined"
+              keyboardType="numeric"
+              style={styles.input}
+              left={<TextInput.Icon icon="star-circle" />}
+              outlineColor={Colors.light.outline}
+              activeOutlineColor={theme.colors.accent}
+            />
+            <HelperText type='info' style={styles.helperText}>This defines how many loyalty points a customer earns for scanning this QR.</HelperText>
             {qrMode === 'static_with_code' && (
               <TextInput
                 label="Hidden Code"
@@ -437,8 +460,10 @@ const styles = StyleSheet.create({
     color: Colors.light.text,
   },
   input: {
-    marginBottom: AppStyles.spacing.md,
     backgroundColor: Colors.light.surface,
+  },
+  helperText: {
+    marginBottom: AppStyles.spacing.md
   },
   generateButton: {
     borderRadius: AppStyles.card.borderRadius,

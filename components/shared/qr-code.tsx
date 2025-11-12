@@ -36,9 +36,12 @@ export function QrCode({ qrMode, qrData }: QrCodeProps) {
                     <Text variant="bodySmall" >
                         QR Code ID: {qrData?.qr_id?.substring(0, 8)}...
                     </Text>
+                    <Text variant="bodySmall" >
+                        Points per scan: {qrData?.points_value}
+                    </Text>
                     {qrMode === 'dynamic' && qrData?.expires_at && (
                         <Text variant="bodySmall">
-                            Expires: {new Date(qrData.expires_at).toLocaleString()}
+                            Expires: {new Date(qrData.expires_at._seconds ? qrData.expires_at._seconds * 1000 : qrData.expires_at).toLocaleString()}
                         </Text>
                     )}
                     {qrMode === 'static_with_code' && (

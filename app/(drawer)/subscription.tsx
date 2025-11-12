@@ -4,27 +4,44 @@ import { useAuthStore } from '@/store/authStore';
 import { PLANS } from '@/utils/constant';
 import { AppStyles, Colors } from '@/utils/theme';
 import Constants from 'expo-constants';
-import React from 'react';
+import React, { useMemo, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
-import { Button, Card, Text } from 'react-native-paper';
+import { ActivityIndicator, Button, Card, Chip, Text } from 'react-native-paper';
 import RazorpayCheckout from 'react-native-razorpay';
 
-const API_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || process.env.EXPO_PUBLIC_BACKEND_URL;
+const API_URL =
+    Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL ||
+    process.env.EXPO_PUBLIC_BACKEND_URL;
 
 export default function SubscriptionScreen() {
+    const { user, fetchUserDetails } = useAuthStore();
+    const [loading, setLoading] = useState(false);
+    const [selectedPlan, setSelectedPlan] = useState('');
+    const [verifying, setVerifying] = useState(false);
+
+    const currentTier = user?.user?.seller_profile?.subscription_tier ?? 'free';
+    const expiryDate = user?.user?.seller_profile?.subscription_expiry
+        ? new Date(user.user.seller_profile.subscription_expiry._seconds * 1000)
+        : null;
+
+    const sortedPlans = useMemo(() => {
+        const activePlan = PLANS.find((p) => p.id === currentTier);
+        const otherPlans = PLANS.filter((p) => p.id !== currentTier);
+        return activePlan ? [activePlan, ...otherPlans] : PLANS;
+    }, [currentTier]);
 
     const handleBuy = async (planId: string) => {
-        // later: integrate Razorpay checkout
         if (planId === 'free') return;
+        setSelectedPlan(planId);
         try {
-            const { user } = useAuthStore.getState();
+            setLoading(true);
+
             const response = await api.post(`${API_URL}/payments/create-order`, {
                 planId,
                 sellerId: user?.user.uid,
             });
 
             const { order_id, key_id, amount, currency } = response.data;
-
             const options = {
                 description: `Grabbitt ${planId.toUpperCase()} Plan`,
                 currency,
@@ -42,6 +59,7 @@ export default function SubscriptionScreen() {
 
             RazorpayCheckout.open(options)
                 .then(async (data) => {
+                    setVerifying(true);
                     const verifyRes = await api.post(`${API_URL}/payments/verify-payment`, {
                         ...data,
                         sellerId: user?.user.uid,
@@ -49,70 +67,139 @@ export default function SubscriptionScreen() {
                     });
 
                     if (verifyRes.data.success) {
+                        await fetchUserDetails(user?.user.uid ?? '', 'seller');
+                        setLoading(false);
+                        setSelectedPlan('');
+                        setVerifying(false);
                         Alert.alert('Success', 'Your subscription has been upgraded!');
                     } else {
+                        setLoading(false);
+                        setSelectedPlan('');
+                        setVerifying(false);
                         Alert.alert('Verification Failed', verifyRes.data.error);
                     }
                 })
                 .catch((error) => {
+                    setLoading(false);
+                    setSelectedPlan('');
+                    setVerifying(false);
                     console.error('Razorpay Error:', error);
                     Alert.alert('Payment Failed', error.description);
                 });
         } catch (error) {
             console.error('Payment flow error:', error);
             Alert.alert('Error', 'Unable to start payment.');
+        } finally {
+            setLoading(false);
+            setSelectedPlan('');
+            setVerifying(false);
         }
     };
 
+    if (verifying) {
+        return (
+            <ScrollView contentContainerStyle={styles.container}>
+                <AppHeader />
+                <View style={styles.loadingContainer}>
+                    <ActivityIndicator size="large" color={Colors.light.primary} />
+                    <Text>Please wait! Verifying your payment...</Text>
+                </View>
+            </ScrollView>
+        );
+    }
+
     return (
-        <View style={{ flex: 1, backgroundColor: Colors.light.background }
-        }>
+        <View style={{ flex: 1, backgroundColor: Colors.light.background }}>
             <AppHeader />
             <ScrollView contentContainerStyle={styles.container}>
                 <Text variant="headlineSmall" style={styles.title}>
                     Choose your plan
                 </Text>
 
-                {PLANS.map((plan) => (
-                    <Card key={plan.id} style={styles.card} elevation={2}>
-                        <Card.Content>
-                            <View style={{ flex: 1, flexDirection: 'row', alignItems: 'center', justifyContent: 'space-between' }}>
-                                <Text
-                                    variant="titleLarge"
-                                    style={[styles.planName, { color: plan.color }]}
+                {sortedPlans.map((plan, idx) => {
+                    const isCurrent = plan.id === currentTier;
+                    const isLocked = currentTier !== 'free' && !isCurrent;
+
+                    return (
+                        <Card
+                            key={plan.id}
+                            style={[
+                                styles.card,
+                                isCurrent && { borderColor: plan.color, borderWidth: 1 },
+                            ]}
+                            elevation={1}
+                        >
+                            <Card.Content>
+                                <View
+                                    style={{
+                                        flexDirection: 'row',
+                                        justifyContent: 'space-between',
+                                        alignItems: 'center',
+                                    }}
                                 >
-                                    {plan.name}
-                                </Text>
-                                <Text variant="bodyMedium" style={styles.price}>
-                                    {plan.price}
-                                </Text>
-                            </View>
-
-
-                            <View style={styles.features}>
-                                {plan.features.map((f, i) => (
-                                    <Text key={i} style={styles.feature}>
-                                        • {f}
+                                    <Text
+                                        variant="titleLarge"
+                                        style={[styles.planName, { color: plan.color }]}
+                                    >
+                                        {plan.name}
                                     </Text>
-                                ))}
-                            </View>
+                                    <Text variant="bodyMedium" style={styles.price}>
+                                        {plan.price}
+                                    </Text>
+                                </View>
 
-                            <Button
-                                mode="contained"
-                                buttonColor={plan.color}
-                                style={styles.buyBtn}
-                                onPress={() => handleBuy(plan.id)}
-                            >
-                                {plan.id === 'free' ? 'Current Plan' : 'Buy Now'}
-                            </Button>
-                        </Card.Content>
-                    </Card>
-                ))}
+
+
+                                <View style={styles.features}>
+                                    {plan.features.map((f, i) => (
+                                        <Text key={i} style={styles.feature}>
+                                            • {f}
+                                        </Text>
+                                    ))}
+                                </View>
+
+                                {isCurrent && expiryDate && (
+                                    <Text style={styles.expiryText}>
+                                        Expires on: {expiryDate.toLocaleDateString()}
+                                    </Text>
+                                )}
+                                {isCurrent && (
+                                    <View style={styles.ribbonContainer}>
+                                        <Chip
+                                            mode="flat"
+                                            style={[styles.ribbon, { backgroundColor: plan.color + '20' }]}
+                                            textStyle={[styles.ribbonText, { color: plan.color }]}
+                                        >
+                                            <Text style={styles.ribbonText}>Current Active Plan</Text>
+                                        </Chip>
+                                    </View>
+                                )}
+                                {!isCurrent && currentTier === 'free' && (
+                                    <Button
+                                        mode="contained"
+                                        buttonColor={plan.color}
+                                        style={styles.buyBtn}
+                                        loading={loading && selectedPlan === plan.id}
+                                        disabled={loading}
+                                        onPress={() => handleBuy(plan.id)}
+                                    >
+                                        Buy Now
+                                    </Button>
+                                )}
+
+                                {isLocked && (
+                                    <Text style={styles.lockedText}>
+                                        You can purchase another plan after your current plan expires.
+                                    </Text>
+                                )}
+                            </Card.Content>
+                        </Card>
+                    );
+                })}
 
                 <View style={{ height: 60 }} />
             </ScrollView>
         </View>
-
     );
 }
 
@@ -120,6 +207,7 @@ const styles = StyleSheet.create({
     container: {
         padding: AppStyles.spacing.lg,
         backgroundColor: Colors.light.background,
+        flex: 1
     },
     title: {
         textAlign: 'center',
@@ -129,19 +217,16 @@ const styles = StyleSheet.create({
     card: {
         marginBottom: AppStyles.spacing.lg,
         borderRadius: 16,
-        overflow: 'hidden',
         backgroundColor: Colors.light.surface,
     },
     planName: {
         ...AppStyles.typography.heading,
-        marginBottom: 4,
     },
     price: {
         ...AppStyles.typography.subheading,
-        marginBottom: 4
     },
     features: {
-        marginBlock: AppStyles.spacing.lg,
+        marginVertical: AppStyles.spacing.md,
     },
     feature: {
         marginBottom: 4,
@@ -149,5 +234,42 @@ const styles = StyleSheet.create({
     },
     buyBtn: {
         borderRadius: 8,
+    },
+    ribbonContainer: {
+        width: '100%',
+        marginBottom: 8,
+
+    },
+
+    ribbon: {
+        justifyContent: 'center',
+        height: 40,
+        backgroundColor: Colors.light.surfaceVariant,
+        padding: 0
+    },
+
+    ribbonText: {
+        textAlign: 'center',
+        fontWeight: '600',
+        width: '100%',
+        padding: 0,
+        color: Colors.light.primary, // fallback if plan.color isn't applied dynamically
+    },
+    expiryText: {
+        color: Colors.light.accent,
+        fontSize: 13,
+        marginBottom: 10,
+    },
+    lockedText: {
+        color: Colors.light.secondary,
+        fontSize: 12,
+        textAlign: 'center',
+        marginTop: 8,
+    },
+    loadingContainer: {
+        flex: 1,
+        justifyContent: 'center',
+        alignItems: 'center',
+        gap: 8,
     },
 });

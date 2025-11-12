@@ -8,10 +8,11 @@ import { SUBSCRIPTION_PLANS } from '@/utils/constant';
 import { AppStyles, Colors } from '@/utils/theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import Constants from 'expo-constants';
-import { useNavigation, useRouter } from 'expo-router';
-import React, { useEffect, useState } from 'react';
+import { useFocusEffect, useRouter } from 'expo-router';
+import React, { useCallback, useState } from 'react';
 import {
   Alert,
+  Image,
   RefreshControl,
   ScrollView,
   StyleSheet,
@@ -74,38 +75,28 @@ const ActionCard = ({ icon, title, subtitle, onPress, iconColor }: ActionCardPro
 );
 
 export default function SellerDashboard() {
-  const { user, idToken } = useAuthStore();
+  const { user } = useAuthStore();
   const router = useRouter();
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
-  const [profile, setProfile] = useState<any>(null);
   const [activeQR, setActiveQR] = useState<any>(null);
-  const navigation = useNavigation<any>();
   const theme = useTheme();
 
-  useEffect(() => {
-    loadData();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      // Run loadData each time dashboard comes into focus
+      loadData();
+    }, [])
+  )
 
   const loadData = async () => {
     try {
       setLoading(true);
 
-      // 1️⃣ Get Firebase auth token (adjust based on your store)
-      // if (!token) {
-      //   Alert.alert('Error', 'Not authenticated. Please login again.');
-      //   return;
-      // }
 
-      // 2️⃣ Axios request to seller-stats endpoint
-      const response = await api.get(`${API_URL}/dashboard/seller-stats`, {
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-          Accept: 'application/json',
-        },
-        timeout: 10000,
-      });
+      //  Axios request to seller-stats endpoint
+      const response = await api.get(`${API_URL}/dashboard/seller-stats`);
 
       const { data } = response;
       if (!data?.success) {
@@ -113,27 +104,21 @@ export default function SellerDashboard() {
         return;
       }
 
-      // 3️⃣ Update local state
+      // Update local state
       const statsData = data.data;
       setStats({
         total_users: statsData.total_users,
-        active_qr_codes: statsData.active_qr_codes,
+        total_qrs: statsData.total_qrs,
         total_scanned: statsData.total_scanned,
         total_points_issued: statsData.total_points_issued,
         total_redemptions: statsData.total_redemptions,
         seller_name: statsData.seller_name,
       });
 
-      const qrResponse = await api.get(`${API_URL}/qr-code/get-active-qr`, {
-        headers: {
-          Authorization: `Bearer ${idToken}`,
-        },
-        timeout: 10000,
-      });
+      const qrResponse = await api.get(`${API_URL}/qr-code/get-active-qr`);
 
       if (qrResponse.data?.success) {
         setActiveQR(qrResponse.data.data);
-        //setSellerPlan(qrResponse.data.data.plan);
       }
 
     } catch (error: any) {
@@ -174,30 +159,45 @@ export default function SellerDashboard() {
         contentContainerStyle={styles.scrollContent}
       >
         {/* Welcome Section */}
-        <View style={styles.welcomeSection}>
-          <View style={styles.welcomeTextContainer}>
-            <Text variant="labelLarge" style={styles.greeting}>Welcome back,</Text>
-            <Text variant="headlineSmall" style={styles.shopName}>{user?.user.seller_profile?.shop_name}</Text>
+        <View style={styles.heroContainer}>
+          <Image
+            source={require('@/assets/images/hero_banner.png')} // replace with your generated image
+            style={styles.heroImage}
+          />
+          <View style={styles.heroOverlay} />
+
+          <View style={styles.heroContent}>
+            <Text variant="headlineSmall" style={styles.heroShopName}>
+              Hello, {user?.user.seller_profile?.shop_name}
+            </Text>
+
+
+
             <Chip
               mode="flat"
-              icon="store"
-              style={styles.categoryChip}
-              textStyle={styles.chipText}
+              icon="star"
+              style={styles.heroChip}
+              textStyle={styles.heroChipText}
             >
               {SUBSCRIPTION_PLANS[user?.user.seller_profile?.subscription_tier ?? 'free'].name}
             </Chip>
 
+            <Text variant="bodySmall" style={styles.heroSubLabel}>
+              Manage your loyalty rewards and grow your customers
+            </Text>
 
+            {user?.user.seller_profile?.subscription_tier === 'free' && (
+              <Button
+                variant="contained"
+                onPress={() => router.push('/(drawer)/subscription')}
+              >
+                Upgrade Plan
+              </Button>
+            )}
           </View>
-          {user?.user.seller_profile?.subscription_tier === 'free' && (
-            <Button
-              variant="contained"
-              onPress={() => router.push('/(drawer)/subscription')}
-            >
-              Upgrade Plan
-            </Button>
-          )}
         </View>
+
+
 
         {/* Stats Grid */}
         <View style={styles.statsSection}>
@@ -227,8 +227,8 @@ export default function SellerDashboard() {
             />
             <StatCard
               icon="qrcode"
-              value={stats?.active_qr_codes || 0}
-              label="Active QRs"
+              value={stats?.total_qrs || 0}
+              label="Total QRs"
               color={Colors.light.secondary}
               gradientColors={[Colors.light.secondary, Colors.light.primary]}
             />
@@ -283,6 +283,68 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
   },
+  heroContainer: {
+    position: 'relative',
+    height: 200,
+    borderRadius: 16,
+    overflow: 'hidden',
+    marginBottom: AppStyles.spacing.lg,
+    shadowColor: '#000',
+    shadowOpacity: 0.25,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+
+  heroImage: {
+    width: '100%',
+    height: '100%',
+    resizeMode: 'cover',
+  },
+
+  heroOverlay: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: 'rgba(0,0,0,0.6)', // darkened overlay for better contrast
+  },
+
+  heroContent: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    justifyContent: 'center',
+    alignItems: 'center',
+    padding: 16,
+  },
+
+  heroShopName: {
+    color: '#FFF',
+    fontWeight: '700',
+    fontSize: 22,
+    marginBottom: 12,
+    textAlign: 'center',
+  },
+
+  heroChip: {
+    backgroundColor: 'rgba(255,255,255,0.4)',
+    alignSelf: 'center',
+    marginBottom: 8,
+  },
+
+  heroChipText: {
+    fontWeight: '600',
+  },
+
+  heroSubLabel: {
+    color: '#FFF',
+    fontSize: 14,
+    textAlign: 'center',
+    marginBottom: 16,
+  },
   loadingContainer: {
     flex: 1,
     justifyContent: 'center',
@@ -295,30 +357,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: AppStyles.spacing.md,
     paddingTop: AppStyles.spacing.md,
   },
-  welcomeSection: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    justifyContent: 'space-between',
-    marginBottom: AppStyles.spacing.lg,
-    padding: AppStyles.spacing.md,
-    backgroundColor: Colors.light.surface,
-    borderRadius: AppStyles.card.borderRadius,
-    borderWidth: 1,
-    borderColor: Colors.light.outline,
-  },
-  welcomeTextContainer: {
-    flex: 1,
-  },
-  greeting: {
-    color: Colors.light.text,
-    opacity: 0.8,
-    marginBottom: 4,
-  },
-  shopName: {
-    color: Colors.light.text,
-    fontWeight: '700',
-    marginBottom: 8,
-  },
+
   categoryChip: {
     backgroundColor: Colors.light.surfaceVariant,
     alignSelf: 'flex-start',

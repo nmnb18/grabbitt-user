@@ -32,6 +32,7 @@ export interface SellerProfile {
     total_scans?: number;
     updated_at?: FirebaseTimestamp;
     user_id: string;
+    subscription_expiry?: FirebaseTimestamp;
     verification_status?: "pending" | "approved" | "rejected";
 }
 

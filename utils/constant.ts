@@ -46,7 +46,7 @@ export const SUBSCRIPTION_PLANS = {
         billing: 'month',
     },
     pro: {
-        name: 'Pro',
+        name: 'Pro Member',
         monthlyLimit: Infinity,
         qrFlexibility: 'single-type',
         changeType: true,
@@ -54,7 +54,7 @@ export const SUBSCRIPTION_PLANS = {
         billing: 'month',
     },
     premium: {
-        name: 'Premium',
+        name: 'Premium Member',
         monthlyLimit: Infinity,
         qrFlexibility: 'all-types',
         changeType: true,

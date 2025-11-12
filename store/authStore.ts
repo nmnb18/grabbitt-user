@@ -79,11 +79,28 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
   fetchUserDetails: async (uid) => {
     try {
+      const { idToken, user } = get();
+
+      // Prefer passed token, or fallback to stored one
+      const token = idToken || user?.idToken;
+
+      if (!token) {
+        console.warn("No idToken found in store.");
+        throw new Error("Not authenticated.");
+      }
       set({ loading: true });
-      const response = await axios.get(`${API_URL}/getuserdetails?uid=${uid}`);
-      const user = response.data;
-      set({ user, loading: false });
-      await AsyncStorage.setItem("user", JSON.stringify(user));
+      const response = await axios.get(`${API_URL}/users/getuserdetails?uid=${uid}`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      const updatedUser: User = {
+        ...user!,
+        success: true,
+        user: response.data.user,
+      };
+      await AsyncStorage.setItem("user", JSON.stringify(updatedUser));
+      set({ user: updatedUser, loading: false });
     } catch (err: any) {
       set({ loading: false });
       console.error("Fetch user error:", err.response?.data || err.message);
@@ -135,7 +152,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       }
 
       const { idToken, refreshToken } = response.data;
-      console.log(response.data)
       const updatedUser = { ...user, idToken, refreshToken };
 
       await AsyncStorage.setItem("user", JSON.stringify(updatedUser));
