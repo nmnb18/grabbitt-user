@@ -5,8 +5,10 @@ import { MaterialCommunityIcons } from '@expo/vector-icons';
 import { useRouter } from 'expo-router';
 import React, { useEffect, useMemo, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
-import { ActivityIndicator, Card, Text } from 'react-native-paper';
+import { Card, Text } from 'react-native-paper';
+import ProAnalyticsSkeleton from '../skeletons/pro-analytics';
 import { Button } from '../ui/paper-button';
+import withSkeletonTransition from '../wrappers/withSkeletonTransition';
 
 type DayBucket = {
     date: string; // "YYYY-MM-DD"
@@ -67,7 +69,7 @@ type AdvancedAnalytics = {
     export_available: boolean;
 };
 
-export default function SellerProAnalyticsInsights() {
+function SellerProAnalyticsInsights() {
     const router = useRouter();
     const { user } = useAuthStore();
     const idToken = user?.idToken;
@@ -130,14 +132,6 @@ export default function SellerProAnalyticsInsights() {
         if (!data?.qr_type_breakdown) return 0;
         return Object.values(data.qr_type_breakdown).reduce((sum, v) => sum + v, 0);
     }, [data?.qr_type_breakdown]);
-
-    if (loading && !data && !isFree) {
-        return (
-            <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={Colors.light.accent} />
-            </View>
-        );
-    }
 
     // If free, show locked message
     if (isFree) {
@@ -647,3 +641,5 @@ const styles = StyleSheet.create({
     lockedText: { fontSize: 14, color: '#4B5563', textAlign: 'center', marginBottom: 14 },
     lockedCta: { fontSize: 14, color: Colors.light.accent, fontWeight: '600' },
 });
+
+export default withSkeletonTransition(ProAnalyticsSkeleton)(SellerProAnalyticsInsights)

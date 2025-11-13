@@ -1,7 +1,9 @@
 import { QrCode } from '@/components/shared/qr-code';
+import DashboardSkeleton from '@/components/skeletons/dashboard';
 import { GradientIcon } from '@/components/ui/gradient-icon';
 import { GradientText } from '@/components/ui/gradient-text';
 import { Button } from '@/components/ui/paper-button';
+import withSkeletonTransition from '@/components/wrappers/withSkeletonTransition';
 import { useTheme } from '@/hooks/use-theme-color';
 import api from '@/services/axiosInstance';
 import { SUBSCRIPTION_PLANS } from '@/utils/constant';
@@ -19,7 +21,6 @@ import {
   View
 } from 'react-native';
 import {
-  ActivityIndicator,
   Card,
   Chip,
   Surface,
@@ -74,7 +75,7 @@ const ActionCard = ({ icon, title, subtitle, onPress, iconColor }: ActionCardPro
   </Card>
 );
 
-export default function SellerDashboard() {
+function SellerDashboard() {
   const { user } = useAuthStore();
   const router = useRouter();
   const [stats, setStats] = useState<any>(null);
@@ -140,13 +141,6 @@ export default function SellerDashboard() {
     loadData();
   };
 
-  if (loading) {
-    return (
-      <View style={styles.loadingContainer}>
-        <ActivityIndicator size="large" color={theme.colors.primary} />
-      </View>
-    );
-  }
 
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -443,3 +437,5 @@ const styles = StyleSheet.create({
     height: AppStyles.spacing.lg,
   },
 });
+
+export default withSkeletonTransition(DashboardSkeleton)(SellerDashboard);

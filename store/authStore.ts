@@ -1,5 +1,6 @@
 
 import { LoginResponse as User, UserPayload } from "@/types/auth";
+import { startSubscriptionWatcher } from "@/utils/subscription-watcher";
 import AsyncStorage from "@react-native-async-storage/async-storage";
 import axios from "axios";
 import Constants from "expo-constants";
@@ -124,11 +125,20 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         user: response.data.user,
       };
       await AsyncStorage.setItem("user", JSON.stringify(updatedUser));
-      set({ user: updatedUser, loading: false });
+      set({ user: updatedUser });
+      // Restart watcher with new expiry
+      const expiry = updatedUser?.user?.seller_profile?.subscription?.expires_at
+        ? updatedUser.user.seller_profile.subscription.expires_at._seconds * 1000
+        : null;
+
+      startSubscriptionWatcher(expiry, () => {
+        get().fetchUserDetails(uid, 'seller');
+      });
     } catch (err: any) {
-      set({ loading: false });
       console.error("Fetch user error:", err.response?.data || err.message);
       throw new Error(err.response?.data?.message || "Failed to fetch user details");
+    } finally {
+      set({ loading: false });
     }
   },
 
@@ -161,6 +171,14 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       if (userStr) {
         const user = JSON.parse(userStr);
         set({ user });
+        const expiry = user?.user?.seller_profile?.subscription?.expires_at
+          ? user.user.seller_profile.subscription.expires_at._seconds * 1000
+          : null;
+        if (expiry) {
+          startSubscriptionWatcher(expiry, () => {
+            get().fetchUserDetails(user.uid, "seller");
+          });
+        }
       }
       set({ loading: false });
     } catch (error) {

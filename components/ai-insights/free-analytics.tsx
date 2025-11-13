@@ -4,7 +4,9 @@ import { Colors } from '@/utils/theme';
 import { MaterialCommunityIcons } from '@expo/vector-icons';
 import React, { useEffect, useState } from 'react';
 import { RefreshControl, ScrollView, StyleSheet, View } from 'react-native';
-import { ActivityIndicator, Card, Text } from 'react-native-paper';
+import { Card, Text } from 'react-native-paper';
+import FreeAnalyticsSkeleton from '../skeletons/free-analytics';
+import withSkeletonTransition from '../wrappers/withSkeletonTransition';
 
 type TodayStats = {
     scans: number;
@@ -35,7 +37,7 @@ type SellerStats = {
     locked_features?: boolean;
 };
 
-export default function SellerFreeAIInsights() {
+function SellerFreeAIInsights() {
     const { user } = useAuthStore();
     const idToken = user?.idToken;
 
@@ -70,14 +72,6 @@ export default function SellerFreeAIInsights() {
         setRefreshing(true);
         fetchStats();
     };
-
-    if (loading && !stats) {
-        return (
-            <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color={Colors.light.primary} />
-            </View>
-        );
-    }
 
     return (
         <ScrollView
@@ -415,3 +409,6 @@ const styles = StyleSheet.create({
         fontWeight: '600',
     },
 });
+
+
+export default withSkeletonTransition(FreeAnalyticsSkeleton)(SellerFreeAIInsights);
