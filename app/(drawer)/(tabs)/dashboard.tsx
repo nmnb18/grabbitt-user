@@ -82,6 +82,7 @@ export default function SellerDashboard() {
   const [refreshing, setRefreshing] = useState(false);
   const [activeQR, setActiveQR] = useState<any>(null);
   const theme = useTheme();
+  const sellerProfile = user?.user.seller_profile;
 
   useFocusEffect(
     useCallback(() => {
@@ -168,7 +169,7 @@ export default function SellerDashboard() {
 
           <View style={styles.heroContent}>
             <Text variant="headlineSmall" style={styles.heroShopName}>
-              Hello, {user?.user.seller_profile?.shop_name}
+              Hello, {sellerProfile?.business?.shop_name}
             </Text>
 
 
@@ -179,14 +180,14 @@ export default function SellerDashboard() {
               style={styles.heroChip}
               textStyle={styles.heroChipText}
             >
-              {SUBSCRIPTION_PLANS[user?.user.seller_profile?.subscription_tier ?? 'free'].name}
+              {SUBSCRIPTION_PLANS[sellerProfile?.subscription?.tier ?? 'free'].name}
             </Chip>
 
             <Text variant="bodySmall" style={styles.heroSubLabel}>
               Manage your loyalty rewards and grow your customers
             </Text>
 
-            {user?.user.seller_profile?.subscription_tier === 'free' && (
+            {sellerProfile?.subscription?.tier === 'free' && (
               <Button
                 variant="contained"
                 onPress={() => router.push('/(drawer)/subscription')}

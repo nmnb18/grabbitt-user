@@ -1,39 +1,86 @@
-// utils/types/user.ts
-
-export interface SellerProfile {
+export interface SellerStats {
+    total_scans: number;
+    total_points_distributed: number;
     active_customers: number;
-    address?: Record<string, any>; // Replace with specific address type if you have one
-    banner_url?: string | null;
-    business_registration_number?: string | null;
-    business_type?: string;
-    category?: string;
-    created_at?: FirebaseTimestamp;
-    default_points_value?: number;
-    description?: string;
-    email: string;
-    email_notifications?: boolean;
-    gallery_urls?: string[];
-    gst_number?: string | null;
-    is_verified?: boolean;
-    last_active?: FirebaseTimestamp;
-    location_lat?: number | null;
-    location_lng?: number | null;
-    location_radius_meters?: number;
+    monthly_scans: number;
+}
+export interface SellerMedia {
     logo_url?: string | null;
-    monthly_scans?: number;
-    notifications_enabled?: boolean;
+    banner_url?: string | null;
+    gallery_urls: string[];
+}
+export interface SellerQRSettings {
+    qr_code_type: "static" | "dynamic" | "static_hidden";
+}
+export interface SellerSubscription {
+    tier: "free" | "pro" | "premium";
+    monthly_limit: number;
+    price: number;
+    status: "active" | "expired" | "canceled";
+    period_start: FirebaseTimestamp | null;
+    period_end: FirebaseTimestamp | null;
+}
+export interface SellerRewards {
+    default_points_value: number;
+    reward_points: number;
+    reward_description?: string;
+    reward_name?: string;
+}export interface SellerVerification {
+    gst_number?: string | null;
     pan_number?: string | null;
-    phone: string;
-    push_notifications?: boolean;
-    qr_code_type?: "static" | "dynamic" | "static_hidden";
+    business_registration_number?: string | null;
+    status: "pending" | "approved" | "rejected";
+    is_verified: boolean;
+}
+export interface SellerAddress {
+    street?: string;
+    city?: string;
+    state?: string;
+    pincode?: string;
+    country?: string;
+}
+
+export interface SellerLocation {
+    address: SellerAddress;
+    lat?: number | null;
+    lng?: number | null;
+    radius_meters?: number | null;
+}
+export interface SellerBusiness {
     shop_name: string;
-    subscription_tier?: "free" | "pro" | "premium";
-    total_points_distributed?: number;
-    total_scans?: number;
-    updated_at?: FirebaseTimestamp;
+    business_type: string;
+    category: string;
+    description?: string;
+}
+export interface SellerAccount {
+    name: string;
+    email: string;
+    phone: string;
+    established_year?: number | null;
+}
+
+export interface SellerSettings {
+    notifications_enabled: boolean;
+    email_notifications: boolean;
+    push_notifications: boolean;
+}
+export interface SellerProfile {
     user_id: string;
-    subscription_expiry?: FirebaseTimestamp;
-    verification_status?: "pending" | "approved" | "rejected";
+
+    account: SellerAccount;
+    business: SellerBusiness;
+    location: SellerLocation;
+    verification: SellerVerification;
+    rewards: SellerRewards;
+    subscription: SellerSubscription;
+    qr_settings: SellerQRSettings;
+    media: SellerMedia;
+    stats: SellerStats;
+    settings: SellerSettings;
+
+    created_at?: FirebaseTimestamp;
+    updated_at?: FirebaseTimestamp;
+    last_active?: FirebaseTimestamp;
 }
 
 export interface FirebaseTimestamp {

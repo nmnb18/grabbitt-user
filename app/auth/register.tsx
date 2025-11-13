@@ -324,7 +324,7 @@ export default function SellerRegister() {
             };
 
             await register(payload);
-            router.replace('/(drawer)/(tabs)/dashboard');
+            router.push('/auth/login');
         } catch (error: any) {
             Alert.alert('Registration Error', error.message);
         } finally {

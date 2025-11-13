@@ -67,24 +67,23 @@ export function Button({
                     />
                 )}
 
-                {loading ? (
+                {(loading && (
                     <ActivityIndicator
                         size="small"
                         color={isContained ? '#FFFFFF' : primaryColor}
                     />
-                ) : (
-                    <ThemedText
-                        style={[
-                            styles.buttonText,
-                            isContained && styles.containedButtonText,
-                            isOutlined && styles.outlineButtonText,
-                            isText && [styles.textButtonText, { color: primaryColor }],
-                            isLarge && styles.largeButtonText,
-                        ]}
-                    >
-                        {children}
-                    </ThemedText>
-                )}
+                ))}
+                <ThemedText
+                    style={[
+                        styles.buttonText,
+                        isContained && styles.containedButtonText,
+                        isOutlined && styles.outlineButtonText,
+                        isText && [styles.textButtonText, { color: primaryColor }],
+                        isLarge && styles.largeButtonText,
+                    ]}
+                >
+                    {children}
+                </ThemedText>
 
                 {icon && iconPosition === 'right' && !loading && (
                     <MaterialCommunityIcons

@@ -24,7 +24,7 @@ import {
 
 const API_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || process.env.EXPO_PUBLIC_BACKEND_URL;
 
-type QRMode = 'dynamic' | 'static' | 'static_with_code';
+type QRMode = 'dynamic' | 'static' | 'static_hidden';
 
 export default function SellerGenerateQR() {
   const [loading, setLoading] = useState(false);
@@ -50,14 +50,19 @@ export default function SellerGenerateQR() {
   };
 
   const handleGenerateQR = async () => {
-    if (qrMode === 'static_with_code' && !hiddenCode) {
+    if (qrMode === 'static_hidden' && !hiddenCode) {
       Alert.alert('Error', 'Please enter a hidden code');
       return;
     }
 
 
-    const tier = sellerProfile?.subscription_tier ?? 'free';
+    const tier = sellerProfile?.subscription.tier ?? 'free';
+    const qrType = sellerProfile?.qr_settings.qr_code_type ?? 'dynamic';
     if (tier === 'free') {
+      if (qrType !== qrMode) {
+        Alert.alert('Error', `You can only generate your registered QR (${qrType.toUpperCase()}) type on the Free tier.`);
+      }
+
       setLoading(true);
       try {
         const qrStats = await api.get(`${API_URL}/qr-code/count-monthly`);
@@ -77,10 +82,10 @@ export default function SellerGenerateQR() {
     }
 
     // Pro Plan: only registered QR type allowed
-    if (tier === 'pro' && qrMode !== sellerProfile?.qr_code_type) {
+    if (tier === 'pro' && qrMode !== sellerProfile?.qr_settings.qr_code_type) {
       Alert.alert(
         'Plan Restriction',
-        `You can only generate ${sellerProfile?.qr_code_type?.toUpperCase()} QRs in your current Pro plan.`
+        `You can only generate ${sellerProfile?.qr_settings.qr_code_type?.toUpperCase()} QRs in your current Pro plan.`
       );
       return;
     }
@@ -116,7 +121,7 @@ export default function SellerGenerateQR() {
 
       if (qrMode === 'dynamic') {
         payload.expires_in_minutes = parseInt(expiryMinutes) * 60;
-      } else if (qrMode === 'static_with_code') {
+      } else if (qrMode === 'static_hidden') {
         payload.hidden_code = hiddenCode;
       }
       payload.points_value = parseInt(pointValue);
@@ -140,7 +145,7 @@ export default function SellerGenerateQR() {
         return 'Expires after set time. Best for temporary use.';
       case 'static':
         return 'Never expires. Can be scanned unlimited times.';
-      case 'static_with_code':
+      case 'static_hidden':
         return 'Never expires. Requires hidden code from customer.';
       default:
         return '';
@@ -182,7 +187,7 @@ export default function SellerGenerateQR() {
                   icon: 'qrcode',
                 },
                 {
-                  value: 'static_with_code',
+                  value: 'static_hidden',
                   label: 'Hidden',
                   icon: 'lock',
                 },
@@ -228,12 +233,12 @@ export default function SellerGenerateQR() {
                 mode="outlined"
                 keyboardType="numeric"
                 style={styles.input}
-                disabled={sellerProfile?.subscription_tier === 'free'}
+                disabled={sellerProfile?.subscription.tier === 'free'}
                 left={<TextInput.Icon icon="timer" />}
                 outlineColor={Colors.light.outline}
                 activeOutlineColor={theme.colors.accent}
               />
-                <HelperText type='info' style={styles.helperText}>{sellerProfile?.subscription_tier === 'free'
+                <HelperText type='info' style={styles.helperText}>{sellerProfile?.subscription.tier === 'free'
                   ? 'For free tier, QR codes expire automatically in 24 hours.'
                   : 'Set how long your dynamic QR remains active before expiring.'}</HelperText>
               </>
@@ -250,7 +255,7 @@ export default function SellerGenerateQR() {
               activeOutlineColor={theme.colors.accent}
             />
             <HelperText type='info' style={styles.helperText}>This defines how many loyalty points a customer earns for scanning this QR.</HelperText>
-            {qrMode === 'static_with_code' && (
+            {qrMode === 'static_hidden' && (
               <TextInput
                 label="Hidden Code"
                 value={hiddenCode}
@@ -276,63 +281,7 @@ export default function SellerGenerateQR() {
           </Card.Content>
         </Card>
 
-        {/* Generated QR Code */}
-        {/* {qrImage && (
-          <Card style={styles.qrCard}>
-            <View style={[styles.qrCardContent]}>
-              <View style={styles.qrContainer}>
-                <Image
-                  source={{ uri: qrImage }}
-                  style={styles.qrImage}
-                  resizeMode="contain"
-                />
-              </View>
 
-              <View style={styles.qrInfo}>
-                <Chip
-                  icon="check-circle"
-                  style={styles.qrChip}
-                >
-                  Active
-                </Chip>
-                <Text variant="bodySmall" >
-                  QR Code ID: {qrData?.qr_id?.substring(0, 8)}...
-                </Text>
-                {qrMode === 'dynamic' && qrData?.expires_at && (
-                  <Text variant="bodySmall">
-                    Expires: {new Date(qrData.expires_at).toLocaleString()}
-                  </Text>
-                )}
-                {qrMode === 'static_with_code' && (
-                  <View style={styles.codeContainer}>
-                    <MaterialCommunityIcons name="key" size={16} color={Colors.light.onPrimary} />
-                    <Text variant="bodySmall">
-                      Code: {hiddenCode}
-                    </Text>
-                  </View>
-                )}
-              </View>
-            </View>
-
-            <Card.Actions style={styles.cardActions}>
-              <Button
-                onPress={handleShare}
-                icon="share-variant"
-              >
-                Share
-              </Button>
-              <Button
-                onPress={() => {
-                  setQrImage(null);
-                  setQrData(null);
-                }}
-                icon="refresh"
-              >
-                New QR
-              </Button>
-            </Card.Actions>
-          </Card>
-        )} */}
         {qrData && (
           <QrCode qrMode={qrMode} qrData={qrData} />
         )}
@@ -362,7 +311,7 @@ export default function SellerGenerateQR() {
               </Text>
             </View>
 
-            {qrMode === 'static_with_code' && (
+            {qrMode === 'static_hidden' && (
               <View style={styles.instructionItem}>
                 <View style={[styles.instructionNumber, { backgroundColor: Colors.light.primary }]}>
                   <Text variant="labelLarge" style={styles.instructionNumberText}>3</Text>
@@ -376,7 +325,7 @@ export default function SellerGenerateQR() {
             <View style={styles.instructionItem}>
               <View style={[styles.instructionNumber, { backgroundColor: Colors.light.primary }]}>
                 <Text variant="labelLarge" style={styles.instructionNumberText}>
-                  {qrMode === 'static_with_code' ? '4' : '3'}
+                  {qrMode === 'static_hidden' ? '4' : '3'}
                 </Text>
               </View>
               <Text variant="bodyMedium" style={styles.instructionText}>

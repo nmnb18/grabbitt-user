@@ -19,9 +19,11 @@ export default function SubscriptionScreen() {
     const [selectedPlan, setSelectedPlan] = useState('');
     const [verifying, setVerifying] = useState(false);
 
-    const currentTier = user?.user?.seller_profile?.subscription_tier ?? 'free';
-    const expiryDate = user?.user?.seller_profile?.subscription_expiry
-        ? new Date(user.user.seller_profile.subscription_expiry._seconds * 1000)
+    const subscription = user?.user?.seller_profile?.subscription
+
+    const currentTier = subscription?.tier ?? 'free';
+    const expiryDate = subscription?.period_end
+        ? new Date(subscription?.period_end._seconds * 1000)
         : null;
 
     const sortedPlans = useMemo(() => {

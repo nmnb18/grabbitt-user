@@ -34,23 +34,28 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
       const response = await axios.post(`${API_URL}/auth/register-seller`, payload);
 
-      const { uid, token, ...userData } = response.data;
+      const { uid, token, refreshToken } = response.data;
 
-      // Create user object with all the data
-      const user: User = {
+      // Fetch full structured seller profile
+      const details = await axios.get(`${API_URL}/seller/get-seller-details?uid=${uid}`, {
+        headers: { Authorization: `Bearer ${token}` },
+      });
+
+      const fullUser: User = {
+        success: true,
         uid,
-        token,
-        email: payload.email,
-        name: payload.name,
-        shopName: payload.shopName,
-        phone: payload.phone,
-        // Include additional fields if returned by backend
-        ...userData
+        idToken: token,
+        refreshToken,
+        user: details.data.user,
       };
 
-      // Store user data in AsyncStorage
-      await AsyncStorage.setItem("user", JSON.stringify(user));
-      set({ user, loading: false });
+      await AsyncStorage.setItem("user", JSON.stringify(fullUser));
+
+      set({
+        user: fullUser,
+        idToken: token,
+        loading: false,
+      });
     } catch (err: any) {
       set({ loading: false });
       console.error("Register error:", err.response?.data || err.message);
@@ -67,9 +72,28 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         role
       });
 
-      const user = response.data;
-      await AsyncStorage.setItem("user", JSON.stringify(user));
-      set({ user, loading: false });
+      const { uid, idToken, refreshToken } = response.data;
+
+      // Fetch full structured profile
+      const details = await axios.get(`${API_URL}/seller/get-seller-details?uid=${uid}`, {
+        headers: { Authorization: `Bearer ${idToken}` },
+      });
+
+      const fullUser: User = {
+        success: true,
+        uid,
+        idToken,
+        refreshToken,
+        user: details.data.user,
+      };
+
+      await AsyncStorage.setItem("user", JSON.stringify(fullUser));
+
+      set({
+        user: fullUser,
+        idToken,
+        loading: false,
+      });
     } catch (err: any) {
       set({ loading: false });
       console.error("Login error:", err.response?.data || err.message);
@@ -89,7 +113,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         throw new Error("Not authenticated.");
       }
       set({ loading: true });
-      const response = await axios.get(`${API_URL}/users/getuserdetails?uid=${uid}`, {
+      const response = await axios.get(`${API_URL}/seller/get-seller-details?uid=${uid}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -110,9 +134,17 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
 
   logout: async (uid: string) => {
     try {
+      const { idToken, user } = get();
+
+      // Prefer passed token, or fallback to stored one
+      const token = idToken || user?.idToken;
       set({ loading: true });
       await axios.post(`${API_URL}/auth/logout-seller`, {
         uid
+      }, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
       });
       await AsyncStorage.removeItem("user");
       set({ user: null, loading: false });
