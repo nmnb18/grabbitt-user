@@ -1,8 +1,9 @@
+import { Colors } from '@/utils/theme';
 import { LinearGradient } from 'expo-linear-gradient';
 import { useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
-import { ActivityIndicator, Text } from 'react-native-paper';
+import { Image, StyleSheet } from 'react-native';
+import { ActivityIndicator } from 'react-native-paper';
 import { useAuthStore } from '../store/authStore';
 
 export default function Index() {
@@ -26,7 +27,7 @@ export default function Index() {
         } else {
           router.replace('/auth/login');
         }
-      }, 500);
+      }, 1500);
 
       return () => clearTimeout(timer);
     }
@@ -41,47 +42,37 @@ export default function Index() {
 
   return (
     <LinearGradient
-      colors={['#0D7377', '#14FFEC']}
-      style={styles.container}
+      colors={['#ffffff', '#ff6b35']}
+      style={styles.content}
     >
-      <View style={styles.content}>
-        <Text variant="displayLarge" style={styles.logo}>
-          Grabbitt
-        </Text>
-        <Text variant="titleMedium" style={styles.tagline}>
-          for Business
-        </Text>
-        <ActivityIndicator
-          size="large"
-          color="#FFFFFF"
-          style={styles.loader}
-        />
-      </View>
-    </LinearGradient>
+      <Image
+        source={require('@/assets/images/logo.png')}
+        style={styles.logo}
+      />
+      <ActivityIndicator
+        size="large"
+        color={Colors.light.primary}
+        style={styles.loader}
+      /></LinearGradient>
+
   );
 }
 
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
   content: {
     flex: 1,
-    justifyContent: 'center',
+    paddingHorizontal: 80,
     alignItems: 'center',
-    paddingHorizontal: 24,
+    paddingTop: 100
   },
-  logo: {
-    color: '#FFFFFF',
-    fontWeight: '700',
-    marginBottom: 8,
-  },
-  tagline: {
-    color: '#FFFFFF',
-    opacity: 0.9,
-    marginBottom: 40,
-  },
+
   loader: {
     marginTop: 20,
   },
-});
+
+
+  logo: {
+    width: 280,
+    height: 120,
+  },
+})

@@ -18,7 +18,7 @@ export interface SellerSubscription {
     price: number;
     status: "active" | "expired" | "canceled";
     period_start: FirebaseTimestamp | null;
-    period_end: FirebaseTimestamp | null;
+    expires_at: FirebaseTimestamp | null;
 }
 export interface SellerRewards {
     default_points_value: number;

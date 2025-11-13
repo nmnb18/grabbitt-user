@@ -1,6 +1,6 @@
 {
   "expo": {
-    "name": "grabbitt-seller",
+    "name": "Grabbitt Seller",
     "slug": "grabbitt-seller",
     "version": "1.0.0",
     "orientation": "portrait",
@@ -33,7 +33,7 @@
       [
         "expo-splash-screen",
         {
-          "image": "./assets/images/splash-icon.png",
+          "image": "./assets/images/logo.png",
           "imageWidth": 200,
           "resizeMode": "contain",
           "backgroundColor": "#ffffff",

@@ -4,7 +4,6 @@ import LocationDetails from '@/components/profile/location-details';
 import RewardsSettings from '@/components/profile/reward-settings';
 import VerificationDetails from '@/components/profile/verification-details';
 import { Button } from '@/components/ui/paper-button';
-import Constants from 'expo-constants';
 import { useRouter } from 'expo-router';
 import React from 'react';
 import {
@@ -23,16 +22,12 @@ import {
 } from 'react-native-paper';
 import { useAuthStore } from '../../../store/authStore';
 
-const API_URL =
-  Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL ||
-  process.env.EXPO_PUBLIC_BACKEND_URL;
-
 export default function SellerProfileSetup() {
   const router = useRouter();
   const { user } = useAuthStore();
   const subscription = user?.user.seller_profile?.subscription;
-  const expiryText = subscription?.period_end?._seconds
-    ? `Expires on ${new Date(subscription?.period_end?._seconds * 1000).toLocaleDateString()}`
+  const expiryText = subscription?.expires_at
+    ? `Expires on ${new Date(subscription?.expires_at?._seconds * 1000).toLocaleDateString()}`
     : 'No expiry set';
 
   return (

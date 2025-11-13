@@ -1,221 +1,200 @@
+import api from '@/services/axiosInstance';
 import { useAuthStore } from '@/store/authStore';
 import { Colors } from '@/utils/theme';
-import Constants from 'expo-constants';
 import React, { useMemo, useState } from 'react';
-import { Alert, StyleSheet, View } from 'react-native';
-import { Button, Card, Chip, Divider, HelperText, Text, TextInput } from 'react-native-paper';
+import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
+import { Button, Card, Chip, Divider, Text, TextInput } from 'react-native-paper';
 
-const API_URL =
-    Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL ||
-    process.env.EXPO_PUBLIC_BACKEND_URL;
+export default function VerificationInformation() {
+    const { user, fetchUserDetails } = useAuthStore();
+    const uid = user?.uid;
+    const idToken = user?.idToken;
 
-export default function VerificationDetails() {
-    const { user } = useAuthStore();
-    const sellerProfile = user?.user?.seller_profile?.verification;
+    const profile = user?.user?.seller_profile?.verification;
+
+    const [gst, setGst] = useState(profile?.gst_number || '');
+    const [pan, setPan] = useState(profile?.pan_number || '');
+    const [regNum, setRegNum] = useState(profile?.business_registration_number || '');
+
+    const verificationStatus = profile?.status || 'pending';
 
     const [isEditing, setIsEditing] = useState(false);
     const [saving, setSaving] = useState(false);
 
-    const [gstNumber, setGstNumber] = useState(sellerProfile?.gst_number || '');
-    const [panNumber, setPanNumber] = useState(sellerProfile?.pan_number || '');
-    const [businessRegNumber, setBusinessRegNumber] = useState(
-        sellerProfile?.business_registration_number || ''
-    );
-    const [verificationStatus, setVerificationStatus] = useState(
-        sellerProfile?.status || 'pending'
-    );
-
-    const [initial, setInitial] = useState({
-        gstNumber,
-        panNumber,
-        businessRegNumber,
+    const [initialState, setInitialState] = useState({
+        gst,
+        pan,
+        regNum,
     });
 
     const isDirty = useMemo(() => {
         return (
-            gstNumber !== initial.gstNumber ||
-            panNumber !== initial.panNumber ||
-            businessRegNumber !== initial.businessRegNumber
+            gst !== initialState.gst ||
+            pan !== initialState.pan ||
+            regNum !== initialState.regNum
         );
-    }, [gstNumber, panNumber, businessRegNumber, initial]);
+    }, [gst, pan, regNum, initialState]);
 
     const handleCancel = () => {
-        setGstNumber(initial.gstNumber);
-        setPanNumber(initial.panNumber);
-        setBusinessRegNumber(initial.businessRegNumber);
+        setGst(initialState.gst);
+        setPan(initialState.pan);
+        setRegNum(initialState.regNum);
         setIsEditing(false);
     };
 
     const handleSave = async () => {
-        if (!gstNumber && !panNumber && !businessRegNumber) {
-            return Alert.alert('Validation', 'Please fill at least one verification field.');
-        }
-
         try {
             setSaving(true);
 
-            const payload = {
-                gst_number: gstNumber || null,
-                pan_number: panNumber || null,
-                business_registration_number: businessRegNumber || null,
-            };
+            await api.patch(
+                '/seller/update-seller',
+                {
+                    section: 'verification',
+                    data: {
+                        gst_number: gst || null,
+                        pan_number: pan || null,
+                        business_registration_number: regNum || null,
+                    },
+                },
+                { headers: { Authorization: `Bearer ${idToken}` } }
+            );
 
-            // Commented out until BE integration
-            // await api.put(`${API_URL}/sellers/profile/verification`, payload);
+            if (uid) await fetchUserDetails(uid, 'seller');
 
-            setInitial({ gstNumber, panNumber, businessRegNumber });
+            setInitialState({ gst, pan, regNum });
             setIsEditing(false);
-            Alert.alert('Success', 'Verification details updated successfully.');
+
+            Alert.alert('Success', 'Verification details updated.');
         } catch (err: any) {
-            Alert.alert('Error', err.response?.data?.error || 'Failed to save verification details.');
+            Alert.alert('Error', err.response?.data?.message || 'Failed to update verification info.');
         } finally {
             setSaving(false);
         }
     };
 
-    const getVerificationColor = () => {
-        switch (verificationStatus) {
-            case 'approved':
-                return '#10B981';
-            case 'rejected':
-                return '#EF4444';
-            default:
-                return '#F59E0B';
-        }
-    };
+    // status chip style
+    const statusColor =
+        verificationStatus === 'approved'
+            ? '#10B981'
+            : verificationStatus === 'rejected'
+                ? '#EF4444'
+                : '#F59E0B';
 
     return (
         <Card style={styles.card} elevation={3}>
-            <Card.Content>
-                <View style={styles.sectionHeader}>
-                    <Text variant="titleMedium" style={styles.cardTitle}>
-                        ✅ Verification
-                    </Text>
+            <View style={{ position: 'relative' }}>
+                <Card.Content>
+                    {/* Header */}
+                    <View style={styles.sectionHeader}>
+                        <Text variant="titleMedium" style={styles.cardTitle}>
+                            ✅ Verification Details
+                        </Text>
 
-                    {!isEditing ? (
-                        <Button
-                            mode="text"
-                            onPress={() => setIsEditing(true)}
-                            icon="pencil"
-                            compact
+                        {!isEditing ? (
+                            <Button mode="text" onPress={() => setIsEditing(true)} icon="pencil" compact>
+                                Edit
+                            </Button>
+                        ) : (
+                            <View style={styles.editButtons}>
+                                <Button
+                                    mode="text"
+                                    onPress={handleCancel}
+                                    disabled={saving}
+                                    icon="close"
+                                    compact
+                                >
+                                    Cancel
+                                </Button>
+                                <Button
+                                    mode="text"
+                                    onPress={handleSave}
+                                    icon="content-save-outline"
+                                    disabled={!isDirty || saving}
+                                    loading={saving}
+                                    compact
+                                >
+                                    Save
+                                </Button>
+                            </View>
+                        )}
+                    </View>
+
+                    <Divider style={styles.divider} />
+
+                    {/* Verification Status Chip */}
+                    <View style={{ marginBottom: 16 }}>
+                        <Chip
+                            style={[styles.statusChip, { backgroundColor: `${statusColor}22` }]}
+                            textStyle={{ color: statusColor, fontWeight: '600' }}
+                            icon={verificationStatus === 'approved' ? 'check-decagram' : 'shield-alert'}
                         >
-                            Edit
-                        </Button>
+                            {verificationStatus === 'approved'
+                                ? 'Verified'
+                                : verificationStatus === 'rejected'
+                                    ? 'Rejected'
+                                    : 'Pending Verification'}
+                        </Chip>
+                    </View>
+
+                    {/* VIEW MODE */}
+                    {!isEditing ? (
+                        <View>
+                            <View style={styles.infoRow}>
+                                <Text style={styles.infoLabel}>GST Number</Text>
+                                <Text style={styles.infoValue}>{gst || '—'}</Text>
+                            </View>
+
+                            <View style={styles.infoRow}>
+                                <Text style={styles.infoLabel}>PAN Number</Text>
+                                <Text style={styles.infoValue}>{pan || '—'}</Text>
+                            </View>
+
+                            <View style={styles.infoRow}>
+                                <Text style={styles.infoLabel}>Business Registration No.</Text>
+                                <Text style={styles.infoValue}>{regNum || '—'}</Text>
+                            </View>
+                        </View>
                     ) : (
-                        <View style={styles.editButtons}>
-                            <Button
-                                mode="text"
-                                onPress={handleCancel}
-                                disabled={saving}
-                                icon="close"
-                                compact
-                            >
-                                Cancel
-                            </Button>
-                            <Button
-                                mode="text"
-                                onPress={handleSave}
-                                disabled={saving || !isDirty}
-                                icon="content-save-outline"
-                                loading={saving}
-                                compact
-                            >
-                                Save
-                            </Button>
+                        /* EDIT MODE */
+                        <View>
+                            <TextInput
+                                label="GST Number"
+                                value={gst}
+                                onChangeText={setGst}
+                                mode="outlined"
+                                style={styles.input}
+                                left={<TextInput.Icon icon="card-account-details-outline" />}
+                            />
+
+                            <TextInput
+                                label="PAN Number"
+                                value={pan}
+                                onChangeText={setPan}
+                                mode="outlined"
+                                style={styles.input}
+                                left={<TextInput.Icon icon="card-bulleted" />}
+                            />
+
+                            <TextInput
+                                label="Business Registration Number"
+                                value={regNum}
+                                onChangeText={setRegNum}
+                                mode="outlined"
+                                style={styles.input}
+                                left={<TextInput.Icon icon="file-document-outline" />}
+                            />
                         </View>
                     )}
-                </View>
+                </Card.Content>
 
-                <Divider style={styles.divider} />
-
-                <View style={styles.statusRow}>
-                    <Chip
-                        icon={
-                            verificationStatus === 'approved'
-                                ? 'check-decagram'
-                                : verificationStatus === 'rejected'
-                                    ? 'close-octagon'
-                                    : 'shield-alert'
-                        }
-                        style={[styles.statusChip, { backgroundColor: `${getVerificationColor()}22` }]}
-                        textStyle={{ color: getVerificationColor() }}
-                    >
-                        {verificationStatus === 'approved'
-                            ? 'Verified'
-                            : verificationStatus === 'rejected'
-                                ? 'Rejected'
-                                : 'Pending Verification'}
-                    </Chip>
-                </View>
-
-                {!isEditing ? (
-                    // --- VIEW MODE ---
-                    <View>
-                        <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>GST Number</Text>
-                            <Text style={styles.infoValue}>{gstNumber || '—'}</Text>
-                        </View>
-
-                        <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>PAN Number</Text>
-                            <Text style={styles.infoValue}>{panNumber || '—'}</Text>
-                        </View>
-
-                        <View style={styles.infoRow}>
-                            <Text style={styles.infoLabel}>Business Registration Number</Text>
-                            <Text style={styles.infoValue}>{businessRegNumber || '—'}</Text>
-                        </View>
-
-                        <HelperText type="info">
-                            Complete these details to speed up your verification and unlock advanced features.
-                        </HelperText>
-                    </View>
-                ) : (
-                    // --- EDIT MODE ---
-                    <View>
-                        <TextInput
-                            label="GST Number"
-                            value={gstNumber}
-                            onChangeText={setGstNumber}
-                            mode="outlined"
-                            style={styles.input}
-                            outlineColor={Colors.light.outline}
-                            activeOutlineColor={Colors.light.accent}
-                            left={<TextInput.Icon icon="card-account-details-outline" />}
-                        />
-                        <TextInput
-                            label="PAN Number"
-                            value={panNumber}
-                            onChangeText={setPanNumber}
-                            mode="outlined"
-                            style={styles.input}
-                            outlineColor={Colors.light.outline}
-                            activeOutlineColor={Colors.light.accent}
-                            left={<TextInput.Icon icon="card-bulleted" />}
-                        />
-                        <TextInput
-                            label="Business Registration Number"
-                            value={businessRegNumber}
-                            onChangeText={setBusinessRegNumber}
-                            mode="outlined"
-                            style={styles.input}
-                            outlineColor={Colors.light.outline}
-                            activeOutlineColor={Colors.light.accent}
-                            left={<TextInput.Icon icon="file-document-outline" />}
-                        />
-
-                        {/* Placeholder for future document uploads */}
-                        {/* <Button
-              mode="outlined"
-              icon="file-upload"
-              style={{ marginTop: 8 }}
-              onPress={() => Alert.alert('Coming Soon', 'Document upload will be available soon.')}
-            >
-              Upload Verification Documents
-            </Button> */}
+                {/* Saving Overlay */}
+                {saving && (
+                    <View style={styles.overlay}>
+                        <ActivityIndicator size="large" color={Colors.light.accent} />
+                        <Text style={styles.overlayText}>Saving…</Text>
                     </View>
                 )}
-            </Card.Content>
+            </View>
         </Card>
     );
 }
@@ -224,41 +203,51 @@ const styles = StyleSheet.create({
     card: {
         marginBottom: 16,
         borderRadius: 16,
-        backgroundColor: '#FFFFFF',
-        shadowColor: '#000',
-        shadowOpacity: 0.08,
-        shadowRadius: 8,
-        elevation: 3,
+        backgroundColor: '#FFF',
+        paddingVertical: 12,
     },
     sectionHeader: {
         flexDirection: 'row',
-        alignItems: 'baseline',
         justifyContent: 'space-between',
+        alignItems: 'baseline',
     },
     editButtons: {
         flexDirection: 'row',
-        alignItems: 'center',
+        alignItems: 'baseline',
     },
     cardTitle: { fontWeight: '600', marginBottom: 12 },
-    divider: { marginBottom: 16, height: 1.2, backgroundColor: '#0D737733' },
+    divider: { height: 1, backgroundColor: '#ddd', marginBottom: 16 },
 
     infoRow: {
-        paddingVertical: 8,
+        paddingVertical: 12,
         flexDirection: 'row',
         justifyContent: 'space-between',
-        borderBottomWidth: 1,
         borderBottomColor: '#E5E4E2',
+        borderBottomWidth: 0.5,
     },
+
     infoLabel: { color: '#6B7280' },
     infoValue: { fontWeight: '600', color: '#111827' },
-    input: { marginBottom: 12, backgroundColor: '#FFFFFF' },
-    statusRow: {
-        marginBottom: 8,
-        flexDirection: 'row',
-        justifyContent: 'flex-start',
-    },
+
+    input: { marginBottom: 12 },
+
     statusChip: {
-        borderRadius: 20,
-        marginBottom: 8,
+        alignSelf: 'flex-start',
+        borderRadius: 8,
+    },
+
+    overlay: {
+        position: 'absolute',
+        top: 0, bottom: 0, left: 0, right: 0,
+        backgroundColor: 'rgba(255,255,255,0.7)',
+        justifyContent: 'center',
+        alignItems: 'center',
+        borderRadius: 16,
+        zIndex: 100,
+    },
+    overlayText: {
+        marginTop: 8,
+        color: '#444',
+        fontWeight: '500',
     },
 });

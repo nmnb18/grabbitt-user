@@ -4,6 +4,7 @@ import { useAuthStore } from '@/store/authStore';
 import { PLANS } from '@/utils/constant';
 import { AppStyles, Colors } from '@/utils/theme';
 import Constants from 'expo-constants';
+import { useRouter } from 'expo-router';
 import React, { useMemo, useState } from 'react';
 import { Alert, ScrollView, StyleSheet, View } from 'react-native';
 import { ActivityIndicator, Button, Card, Chip, Text } from 'react-native-paper';
@@ -14,6 +15,7 @@ const API_URL =
     process.env.EXPO_PUBLIC_BACKEND_URL;
 
 export default function SubscriptionScreen() {
+    const router = useRouter();
     const { user, fetchUserDetails } = useAuthStore();
     const [loading, setLoading] = useState(false);
     const [selectedPlan, setSelectedPlan] = useState('');
@@ -22,8 +24,8 @@ export default function SubscriptionScreen() {
     const subscription = user?.user?.seller_profile?.subscription
 
     const currentTier = subscription?.tier ?? 'free';
-    const expiryDate = subscription?.period_end
-        ? new Date(subscription?.period_end._seconds * 1000)
+    const expiryDate = subscription?.expires_at
+        ? new Date(subscription?.expires_at._seconds * 1000)
         : null;
 
     const sortedPlans = useMemo(() => {
@@ -69,11 +71,19 @@ export default function SubscriptionScreen() {
                     });
 
                     if (verifyRes.data.success) {
-                        await fetchUserDetails(user?.user.uid ?? '', 'seller');
+                        const res = await fetchUserDetails(user?.user.uid ?? '', 'seller');
                         setLoading(false);
                         setSelectedPlan('');
                         setVerifying(false);
                         Alert.alert('Success', 'Your subscription has been upgraded!');
+                        router.push({
+                            pathname: "/(drawer)/payment-sucess",
+                            params: {
+                                orderId: verifyRes.data.subscription.order_id,
+                                plan: planId,
+                                expiresAt: verifyRes.data.subscription.expires_at
+                            }
+                        });
                     } else {
                         setLoading(false);
                         setSelectedPlan('');

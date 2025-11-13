@@ -27,17 +27,17 @@ const API_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || process.
 type QRMode = 'dynamic' | 'static' | 'static_hidden';
 
 export default function SellerGenerateQR() {
-  const [loading, setLoading] = useState(false);
-  const [qrMode, setQRMode] = useState<QRMode>('dynamic');
-  const [hiddenCode, setHiddenCode] = useState('');
-  const [expiryMinutes, setExpiryMinutes] = useState('24');
-  const [pointValue, setPointsValue] = useState('10');
+
   //const [qrImage, setQrImage] = useState<string | null>(null);
   const [qrData, setQrData] = useState<any>(null);
   const theme = useTheme();
   const { user } = useAuthStore();
   const sellerProfile = user?.user?.seller_profile;
-
+  const [loading, setLoading] = useState(false);
+  const [qrMode, setQRMode] = useState<QRMode>(sellerProfile?.qr_settings.qr_code_type ?? 'dynamic');
+  const [hiddenCode, setHiddenCode] = useState('');
+  const [expiryMinutes, setExpiryMinutes] = useState('24');
+  const [pointValue, setPointsValue] = useState(sellerProfile?.rewards?.default_points_value.toString() ?? '50');
   useEffect(() => {
     loadData()
   }, []);
@@ -61,6 +61,7 @@ export default function SellerGenerateQR() {
     if (tier === 'free') {
       if (qrType !== qrMode) {
         Alert.alert('Error', `You can only generate your registered QR (${qrType.toUpperCase()}) type on the Free tier.`);
+        return;
       }
 
       setLoading(true);
@@ -90,7 +91,7 @@ export default function SellerGenerateQR() {
       return;
     }
 
-    if (qrMode && (tier === 'pro' || tier === 'premium')) {
+    if (qrData && (tier === 'pro' || tier === 'premium')) {
       Alert.alert('Warning', 'Looks like you already have an active QR code. Creating a new one will overwrite the old one. Do you want to proceed?', [
         { text: 'Cancel', style: 'cancel' },
         {
@@ -100,11 +101,12 @@ export default function SellerGenerateQR() {
           },
         },
       ]);
-    } else if (qrMode && tier === 'free') {
+    } else if (qrData && tier === 'free') {
       Alert.alert(
         'Plan Restriction',
         `You already have an active QR code. Upgrade your plan to generate multiple QR codes simultaneously.`
       );
+      return;
     } else {
       generateQR()
     }
@@ -250,6 +252,7 @@ export default function SellerGenerateQR() {
               mode="outlined"
               keyboardType="numeric"
               style={styles.input}
+              disabled={sellerProfile?.subscription.tier === 'free'}
               left={<TextInput.Icon icon="star-circle" />}
               outlineColor={Colors.light.outline}
               activeOutlineColor={theme.colors.accent}

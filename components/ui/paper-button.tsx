@@ -71,6 +71,7 @@ export function Button({
                     <ActivityIndicator
                         size="small"
                         color={isContained ? '#FFFFFF' : primaryColor}
+                        style={{ marginRight: 10 }}
                     />
                 ))}
                 <ThemedText
