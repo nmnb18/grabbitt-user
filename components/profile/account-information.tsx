@@ -5,7 +5,7 @@ import React, { useMemo, useState } from 'react';
 import { ActivityIndicator, Alert, StyleSheet, View } from 'react-native';
 import { Button, Card, Divider, Text, TextInput } from 'react-native-paper';
 
-export default function AccountInformation() {
+export default function AccountInformation({ onOpenChangePassword }: { onOpenChangePassword: () => void }) {
     const { user, fetchUserDetails } = useAuthStore();
     const uid = user?.uid;
     const idToken = user?.idToken;
@@ -28,13 +28,13 @@ export default function AccountInformation() {
         establishedYear,
     });
 
-    const isDirty = useMemo(() => {
-        return (
+    const isDirty = useMemo(
+        () =>
             name !== initial.name ||
             phone !== initial.phone ||
-            establishedYear !== initial.establishedYear
-        );
-    }, [name, phone, establishedYear, initial]);
+            establishedYear !== initial.establishedYear,
+        [name, phone, establishedYear, initial]
+    );
 
     const handleCancel = () => {
         setName(initial.name);
@@ -60,13 +60,10 @@ export default function AccountInformation() {
                         established_year: establishedYear ? Number(establishedYear) : null,
                     },
                 },
-                {
-                    headers: { Authorization: `Bearer ${idToken}` },
-                }
+                { headers: { Authorization: `Bearer ${idToken}` } }
             );
 
             if (uid) await fetchUserDetails(uid, 'seller');
-
             setInitial({ name, phone, establishedYear });
             setIsEditing(false);
 
@@ -82,11 +79,9 @@ export default function AccountInformation() {
         <Card style={styles.card} elevation={3}>
             <View style={{ position: 'relative' }}>
                 <Card.Content>
-                    {/* Header */}
+                    {/* HEADER */}
                     <View style={styles.sectionHeader}>
-                        <Text variant="titleMedium" style={styles.cardTitle}>
-                            👤 Account Information
-                        </Text>
+                        <Text variant="titleMedium" style={styles.cardTitle}>👤 Account Information</Text>
 
                         {!isEditing ? (
                             <Button mode="text" onPress={() => setIsEditing(true)} icon="pencil" compact>
@@ -94,13 +89,7 @@ export default function AccountInformation() {
                             </Button>
                         ) : (
                             <View style={styles.editButtons}>
-                                <Button
-                                    mode="text"
-                                    onPress={handleCancel}
-                                    icon="close"
-                                    disabled={saving}
-                                    compact
-                                >
+                                <Button mode="text" onPress={handleCancel} icon="close" disabled={saving} compact>
                                     Cancel
                                 </Button>
                                 <Button
@@ -119,6 +108,7 @@ export default function AccountInformation() {
 
                     <Divider style={styles.divider} />
 
+                    {/* DISPLAY MODE */}
                     {!isEditing ? (
                         <View>
                             <View style={styles.infoRow}>
@@ -140,8 +130,16 @@ export default function AccountInformation() {
                                 <Text style={styles.infoLabel}>Established Year</Text>
                                 <Text style={styles.infoValue}>{establishedYear || '—'}</Text>
                             </View>
+
+                            {/* Change Password Trigger */}
+                            <View style={{ marginTop: 20 }}>
+                                <Button mode="text" icon="lock-reset" onPress={onOpenChangePassword}>
+                                    Change Password
+                                </Button>
+                            </View>
                         </View>
                     ) : (
+                        /* EDIT MODE */
                         <View>
                             <TextInput
                                 label="Full Name *"
@@ -159,7 +157,8 @@ export default function AccountInformation() {
                                 value={email}
                                 mode="outlined"
                                 editable={false}
-                                style={styles.input} outlineColor={Colors.light.outline}
+                                style={styles.input}
+                                outlineColor={Colors.light.outline}
                                 activeOutlineColor={Colors.light.accent}
                                 left={<TextInput.Icon icon="email" />}
                             />
@@ -170,7 +169,8 @@ export default function AccountInformation() {
                                 onChangeText={setPhone}
                                 mode="outlined"
                                 keyboardType="phone-pad"
-                                style={styles.input} outlineColor={Colors.light.outline}
+                                style={styles.input}
+                                outlineColor={Colors.light.outline}
                                 activeOutlineColor={Colors.light.accent}
                                 left={<TextInput.Icon icon="phone" />}
                             />
@@ -181,7 +181,8 @@ export default function AccountInformation() {
                                 onChangeText={setEstablishedYear}
                                 mode="outlined"
                                 keyboardType="numeric"
-                                style={styles.input} outlineColor={Colors.light.outline}
+                                style={styles.input}
+                                outlineColor={Colors.light.outline}
                                 activeOutlineColor={Colors.light.accent}
                                 left={<TextInput.Icon icon="calendar" />}
                             />
@@ -189,7 +190,7 @@ export default function AccountInformation() {
                     )}
                 </Card.Content>
 
-                {/* 🔥 Saving Overlay */}
+                {/* Saving Overlay */}
                 {saving && (
                     <View style={styles.overlay}>
                         <ActivityIndicator size="large" color={Colors.light.accent} />
@@ -206,12 +207,12 @@ const styles = StyleSheet.create({
         marginBottom: 16,
         borderRadius: 16,
         backgroundColor: '#FFF',
-        paddingVertical: 12
+        paddingVertical: 12,
     },
     sectionHeader: {
         flexDirection: 'row',
         justifyContent: 'space-between',
-        alignItems: 'baseline'
+        alignItems: 'baseline',
     },
     editButtons: {
         flexDirection: 'row',
@@ -229,14 +230,9 @@ const styles = StyleSheet.create({
     infoLabel: { color: '#6B7280' },
     infoValue: { fontWeight: '600', color: '#111827' },
     input: { marginBottom: 12, backgroundColor: '#FFF' },
-
-    // Overlay styles
     overlay: {
         position: 'absolute',
-        top: 0,
-        left: 0,
-        right: 0,
-        bottom: 0,
+        top: 0, left: 0, right: 0, bottom: 0,
         backgroundColor: 'rgba(255,255,255,0.7)',
         borderRadius: 16,
         justifyContent: 'center',

@@ -2,6 +2,7 @@ import { GradientText } from '@/components/ui/gradient-text';
 import { Button } from '@/components/ui/paper-button';
 import { useTheme, useThemeColor } from '@/hooks/use-theme-color';
 import { BUSINESS_TYPES, CATEGORIES, QR_CODE_TYPES } from '@/utils/constant';
+import { isValidPassword } from '@/utils/helper';
 import { AppStyles } from '@/utils/theme';
 import * as Location from 'expo-location';
 import { useRouter } from 'expo-router';
@@ -244,8 +245,11 @@ export default function SellerRegister() {
                     Alert.alert('Error', 'Passwords do not match');
                     return false;
                 }
-                if (formData.password.length < 6) {
-                    Alert.alert('Error', 'Password must be at least 6 characters');
+                if (!isValidPassword(formData.password)) {
+                    Alert.alert(
+                        'Weak Password',
+                        'Password must be at least 8 characters with 1 uppercase, 1 lowercase, 1 number and 1 special character.'
+                    );
                     return false;
                 }
                 return true;
