@@ -71,7 +71,7 @@ function CustomDrawerContent() {
         <SafeAreaView style={{ flex: 1 }}><View style={styles.container}>
             <ScrollView style={styles.menuContainer}>
                 <MenuItem label="Dashboard" icon="grid" color={Colors.light.primary} onPress={() => router.push('/(tabs)/dashboard')} />
-                <MenuItem label="Subscription" icon="star" color={Colors.light.primary} onPress={() => router.push('/subscription')} />
+                <MenuItem label="Plans" icon="star" color={Colors.light.primary} onPress={() => router.push('/subscription')} />
                 <MenuItem
                     label="Contact Us"
                     icon="mail" color={Colors.light.primary}

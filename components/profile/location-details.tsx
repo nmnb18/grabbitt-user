@@ -160,7 +160,7 @@ export default function LocationInformation() {
     };
 
     return (
-        <Card style={styles.card} elevation={3}>
+        <Card style={styles.card}>
             <View style={{ position: 'relative' }}>
                 <Card.Content>
                     {/* Header */}

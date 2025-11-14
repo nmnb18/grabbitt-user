@@ -81,7 +81,7 @@ export default function VerificationInformation() {
                 : '#F59E0B';
 
     return (
-        <Card style={styles.card} elevation={3}>
+        <Card style={styles.card} >
             <View style={{ position: 'relative' }}>
                 <Card.Content>
                     {/* Header */}

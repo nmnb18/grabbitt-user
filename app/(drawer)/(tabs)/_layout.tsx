@@ -14,8 +14,8 @@ export default function SellerLayout() {
   return (
     <Tabs
       screenOptions={{
-        tabBarActiveTintColor: sellerTheme.colors.primary,
-        tabBarInactiveTintColor: sellerTheme.colors.secondaryContainer,
+        tabBarActiveTintColor: sellerTheme.colors.secondary,
+        tabBarInactiveTintColor: sellerTheme.colors.onSurface,
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
           borderTopColor: sellerTheme.colors.outline,

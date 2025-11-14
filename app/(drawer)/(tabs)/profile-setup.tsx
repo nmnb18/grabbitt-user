@@ -11,8 +11,6 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
   Alert,
-  KeyboardAvoidingView,
-  Platform,
   ScrollView,
   StyleSheet,
   View
@@ -129,77 +127,72 @@ export default function SellerProfileSetup() {
 
   return (
     <View style={styles.container}>
-      <KeyboardAvoidingView
-        style={styles.keyboardView}
-        behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+      <ScrollView
+        style={styles.content}
+        showsVerticalScrollIndicator={false}
+        contentContainerStyle={styles.scrollContent}
       >
-        <ScrollView
-          style={styles.content}
-          showsVerticalScrollIndicator={false}
-          contentContainerStyle={styles.scrollContent}
-        >
-          {/* ACCOUNT INFORMATION */}
-          <AccountInformation onOpenChangePassword={() => setShowPasswordSheet(true)} />
+        {/* ACCOUNT INFORMATION */}
+        <AccountInformation onOpenChangePassword={() => setShowPasswordSheet(true)} />
 
-          {/* BUSINESS INFORMATION */}
-          <BusinessInformation />
+        {/* BUSINESS INFORMATION */}
+        <BusinessInformation />
 
-          {/* LOCATION DETAILS */}
-          <LocationDetails />
+        {/* LOCATION DETAILS */}
+        <LocationDetails />
 
-          {/* VERIFICATION */}
-          <VerificationDetails />
+        {/* VERIFICATION */}
+        <VerificationDetails />
 
-          {/* REWARDS SETTINGS */}
-          <RewardsSettings />
+        {/* REWARDS SETTINGS */}
+        <RewardsSettings />
 
-          {/* SUBSCRIPTION */}
-          <Card style={styles.card} elevation={3}>
-            <Card.Content>
-              <Text variant="titleMedium" style={styles.cardTitle}>💎 Subscription</Text>
-              <Divider style={styles.divider} />
-              <View style={styles.subRow}>
-                <Chip style={styles.planChip} icon="crown">
-                  {subscription?.tier?.toUpperCase()}
-                </Chip>
-                <Chip style={styles.expChip} icon="calendar">
-                  {expiryText}
-                </Chip>
-              </View>
+        {/* SUBSCRIPTION */}
+        <Card style={styles.card} elevation={3}>
+          <Card.Content>
+            <Text variant="titleMedium" style={styles.cardTitle}>💎 Subscription</Text>
+            <Divider style={styles.divider} />
+            <View style={styles.subRow}>
+              <Chip style={styles.planChip} icon="crown">
+                {subscription?.tier?.toUpperCase()}
+              </Chip>
+              <Chip style={styles.expChip} icon="calendar">
+                {expiryText}
+              </Chip>
+            </View>
 
-              <HelperText type="info">
-                Plan changes are handled on the Subscription page.
-              </HelperText>
+            <HelperText type="info">
+              Plan changes are handled on the Subscription page.
+            </HelperText>
 
-              <CustomButton
-                variant="outlined"
-                icon="arrow-right-bold-circle"
-                onPress={() => router.push('/(drawer)/subscription')}
-              >
-                Go to Subscription
-              </CustomButton>
-            </Card.Content>
-          </Card>
-
-          {/* DELETE ACCOUNT */}
-          <View style={styles.deleteContainer}>
-            <Button
-              mode="contained"
-              onPress={() => setShowDeleteModal(true)}
-              buttonColor="#DC2626"
-              textColor="#fff"
+            <CustomButton
+              variant="outlined"
+              icon="arrow-right-bold-circle"
+              onPress={() => router.push('/(drawer)/subscription')}
             >
-              Delete My Account
-            </Button>
+              Go to Plans
+            </CustomButton>
+          </Card.Content>
+        </Card>
 
-            <Text style={styles.deleteNote}>
-              This action is permanent and cannot be undone.
-            </Text>
-          </View>
+        {/* DELETE ACCOUNT */}
+        <View style={styles.deleteContainer}>
+          <Button
+            mode="contained"
+            onPress={() => setShowDeleteModal(true)}
+            buttonColor="#DC2626"
+            textColor="#fff"
+          >
+            Delete My Account
+          </Button>
 
-          <View style={styles.bottomSpacer} />
-        </ScrollView>
-      </KeyboardAvoidingView>
+          <Text style={styles.deleteNote}>
+            This action is permanent and cannot be undone.
+          </Text>
+        </View>
+
+        <View style={styles.bottomSpacer} />
+      </ScrollView>
       {/* PORTAL SECTION (Always on top!) */}
       <Portal>
         {/* DELETE ACCOUNT DIALOG */}
@@ -292,7 +285,7 @@ export default function SellerProfileSetup() {
 }
 
 const styles = StyleSheet.create({
-  container: { flex: 1 },
+  container: { flex: 1, backgroundColor: '#F9FAFB', },
   keyboardView: { flex: 1 },
   content: { flex: 1 },
   scrollContent: { paddingHorizontal: 16, paddingTop: 8 },

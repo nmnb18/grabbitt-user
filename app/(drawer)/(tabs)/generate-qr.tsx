@@ -173,7 +173,7 @@ export default function SellerGenerateQR() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View style={[styles.container]}>
       <ScrollView
         style={styles.content}
         showsVerticalScrollIndicator={false}
@@ -398,6 +398,7 @@ export default function SellerGenerateQR() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
+    backgroundColor: '#F9FAFB',
   },
   content: {
     flex: 1,

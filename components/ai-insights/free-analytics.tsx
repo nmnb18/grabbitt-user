@@ -187,7 +187,7 @@ function SellerFreeAIInsights() {
                             <Text style={styles.upgradeBullet}>• Export reports</Text>
                         </View>
                         <View style={styles.upgradeButtonRow}>
-                            <Text style={styles.upgradeCta}>Go to Subscription to upgrade →</Text>
+                            <Text style={styles.upgradeCta}>Go to Plans to upgrade →</Text>
                         </View>
                     </Card.Content>
                 </Card>

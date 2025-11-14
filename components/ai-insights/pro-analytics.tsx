@@ -147,7 +147,7 @@ function SellerProAnalyticsInsights() {
                     icon="arrow-right-bold-circle"
                     onPress={() => router.push('/(drawer)/subscription')}
                 >
-                    Go to Subscription
+                    Go to Plans
                 </Button>
             </View>
         );
