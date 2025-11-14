@@ -4,6 +4,7 @@ import { GradientIcon } from '@/components/ui/gradient-icon';
 import { GradientText } from '@/components/ui/gradient-text';
 import { Button } from '@/components/ui/paper-button';
 import withSkeletonTransition from '@/components/wrappers/withSkeletonTransition';
+import { useSellerQR } from '@/hooks/use-qr';
 import { useTheme } from '@/hooks/use-theme-color';
 import api from '@/services/axiosInstance';
 import { SUBSCRIPTION_PLANS } from '@/utils/constant';
@@ -18,17 +19,14 @@ import {
   RefreshControl,
   ScrollView,
   StyleSheet,
-  View
+  View,
 } from 'react-native';
-import {
-  Card,
-  Chip,
-  Surface,
-  Text
-} from 'react-native-paper';
+import { Card, Chip, Surface, Text } from 'react-native-paper';
 import { useAuthStore } from '../../../store/authStore';
 
-const API_URL = Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL || process.env.EXPO_PUBLIC_BACKEND_URL;
+const API_URL =
+  Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL ||
+  process.env.EXPO_PUBLIC_BACKEND_URL;
 
 interface StatCardProps {
   icon: string;
@@ -38,9 +36,9 @@ interface StatCardProps {
   gradientColors: [string, string];
 }
 
-const StatCard = ({ icon, value, label, color, gradientColors }: StatCardProps) => (
+const StatCard = ({ icon, value, label, gradientColors }: StatCardProps) => (
   <Card style={styles.statCard}>
-    <View style={[styles.statContent]}>
+    <View style={styles.statContent}>
       <GradientIcon size={32} name={icon as any} />
       <GradientText colors={gradientColors} style={styles.statValue}>
         {value}
@@ -60,17 +58,34 @@ interface ActionCardProps {
   iconColor: string;
 }
 
-const ActionCard = ({ icon, title, subtitle, onPress, iconColor }: ActionCardProps) => (
+const ActionCard = ({
+  icon,
+  title,
+  subtitle,
+  onPress,
+  iconColor,
+}: ActionCardProps) => (
   <Card style={styles.actionCard} elevation={1} onPress={onPress}>
     <Card.Content style={styles.actionCardContent}>
-      <Surface style={[styles.actionIcon, { backgroundColor: `${iconColor}20` }]} elevation={0}>
+      <Surface
+        style={[styles.actionIcon, { backgroundColor: `${iconColor}20` }]}
+        elevation={0}
+      >
         <MaterialCommunityIcons name={icon as any} size={28} color={iconColor} />
       </Surface>
       <View style={styles.actionTextContainer}>
-        <Text variant="titleMedium" style={styles.actionTitle}>{title}</Text>
-        <Text variant="bodySmall" style={styles.actionSubtitle}>{subtitle}</Text>
+        <Text variant="titleMedium" style={styles.actionTitle}>
+          {title}
+        </Text>
+        <Text variant="bodySmall" style={styles.actionSubtitle}>
+          {subtitle}
+        </Text>
       </View>
-      <MaterialCommunityIcons name="chevron-right" size={24} color="#9CA3AF" />
+      <MaterialCommunityIcons
+        name="chevron-right"
+        size={24}
+        color="#9CA3AF"
+      />
     </Card.Content>
   </Card>
 );
@@ -78,35 +93,32 @@ const ActionCard = ({ icon, title, subtitle, onPress, iconColor }: ActionCardPro
 function SellerDashboard() {
   const { user } = useAuthStore();
   const router = useRouter();
-  const [stats, setStats] = useState<any>(null);
-  const [loading, setLoading] = useState(true);
-  const [refreshing, setRefreshing] = useState(false);
-  const [activeQR, setActiveQR] = useState<any>(null);
   const theme = useTheme();
   const sellerProfile = user?.user.seller_profile;
 
-  useFocusEffect(
-    useCallback(() => {
-      // Run loadData each time dashboard comes into focus
-      loadData();
-    }, [])
-  )
+  const [stats, setStats] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+  const [refreshing, setRefreshing] = useState(false);
 
-  const loadData = async () => {
+  // ✅ shared QR hook (auto-load + polling)
+  const { activeQR, fetchActiveQR } = useSellerQR({
+    autoLoad: true,
+    pollIntervalMs: 60000, // re-check every 60s to auto-drop expired QR
+  });
+
+  const loadData = useCallback(async () => {
     try {
       setLoading(true);
 
-
-      //  Axios request to seller-stats endpoint
+      // Seller stats
       const response = await api.get(`${API_URL}/dashboard/seller-stats`);
-
       const { data } = response;
+
       if (!data?.success) {
         Alert.alert('Error', data?.error || 'Failed to load dashboard stats');
         return;
       }
 
-      // Update local state
       const statsData = data.data;
       setStats({
         total_users: statsData.total_users,
@@ -117,34 +129,40 @@ function SellerDashboard() {
         seller_name: statsData.seller_name,
       });
 
-      const qrResponse = await api.get(`${API_URL}/qr-code/get-active-qr`);
-
-      if (qrResponse.data?.success) {
-        setActiveQR(qrResponse.data.data);
-      }
-
+      // Active QR (this also marks expired ones inactive on backend)
+      await fetchActiveQR();
     } catch (error: any) {
       console.error('Error loading dashboard:', error);
       if (error.response) {
-        Alert.alert('Server Error', error.response.data?.error || 'Failed to load data from server');
+        Alert.alert(
+          'Server Error',
+          error.response.data?.error || 'Failed to load data from server'
+        );
       } else {
-        Alert.alert('Network Error', 'Please check your internet connection and try again.');
+        Alert.alert(
+          'Network Error',
+          'Please check your internet connection and try again.'
+        );
       }
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  };
+  }, [fetchActiveQR]);
+
+  useFocusEffect(
+    useCallback(() => {
+      loadData();
+    }, [loadData])
+  );
 
   const onRefresh = () => {
     setRefreshing(true);
     loadData();
   };
 
-
   return (
     <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
-
       <ScrollView
         style={styles.content}
         showsVerticalScrollIndicator={false}
@@ -156,7 +174,7 @@ function SellerDashboard() {
         {/* Welcome Section */}
         <View style={styles.heroContainer}>
           <Image
-            source={require('@/assets/images/hero_banner.png')} // replace with your generated image
+            source={require('@/assets/images/hero_banner.png')}
             style={styles.heroImage}
           />
           <View style={styles.heroOverlay} />
@@ -166,15 +184,16 @@ function SellerDashboard() {
               Hello, {sellerProfile?.business?.shop_name}
             </Text>
 
-
-
             <Chip
               mode="flat"
               icon="star"
               style={styles.heroChip}
               textStyle={styles.heroChipText}
             >
-              {SUBSCRIPTION_PLANS[sellerProfile?.subscription?.tier ?? 'free'].name}
+              {
+                SUBSCRIPTION_PLANS[sellerProfile?.subscription?.tier ?? 'free']
+                  .name
+              }
             </Chip>
 
             <Text variant="bodySmall" style={styles.heroSubLabel}>
@@ -191,8 +210,6 @@ function SellerDashboard() {
             )}
           </View>
         </View>
-
-
 
         {/* Stats Grid */}
         <View style={styles.statsSection}>
@@ -230,43 +247,28 @@ function SellerDashboard() {
           </View>
         </View>
 
+        {/* Active QR (auto-expires via backend + hook) */}
         <View style={styles.section}>
+          {!activeQR && !loading && (
+            <Card style={{ padding: 20, borderRadius: 16 }}>
+              <Text style={{ textAlign: 'center', fontSize: 16, marginBottom: 12 }}>
+                Your QR code has expired. Generate a new one.
+              </Text>
+              <Button
+                variant="contained"
+                onPress={() => router.push('/(drawer)/(tabs)/generate-qr')}
+              >
+                Generate New QR
+              </Button>
+            </Card>
+          )}
           {activeQR && (
             <QrCode qrMode={activeQR.qr_type} qrData={activeQR} />
           )}
         </View>
 
-        {/* Quick Actions */}
 
-        <View style={styles.section}>
-          <Text variant="titleLarge" style={[styles.sectionTitle]}>
-            Quick Actions
-          </Text>
 
-          <ActionCard
-            icon="qrcode-plus"
-            title="Generate QR Code"
-            subtitle="Create a new loyalty QR code"
-            onPress={() => { }}
-            iconColor={Colors.light.primary}
-          />
-
-          <ActionCard
-            icon="store-cog"
-            title="Edit Profile"
-            subtitle="Update shop details and rewards"
-            onPress={() => { }}
-            iconColor={Colors.light.secondary}
-          />
-
-          <ActionCard
-            icon="chart-line"
-            title="AI Insights"
-            subtitle="Get reward optimization suggestions"
-            onPress={() => { }}
-            iconColor={Colors.light.accent}
-          />
-        </View>
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
@@ -289,22 +291,19 @@ const styles = StyleSheet.create({
     shadowRadius: 8,
     elevation: 5,
   },
-
   heroImage: {
     width: '100%',
     height: '100%',
     resizeMode: 'cover',
   },
-
   heroOverlay: {
     position: 'absolute',
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.6)', // darkened overlay for better contrast
+    backgroundColor: 'rgba(0,0,0,0.6)',
   },
-
   heroContent: {
     position: 'absolute',
     top: 0,
@@ -315,7 +314,6 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     padding: 16,
   },
-
   heroShopName: {
     color: '#FFF',
     fontWeight: '700',
@@ -323,27 +321,19 @@ const styles = StyleSheet.create({
     marginBottom: 12,
     textAlign: 'center',
   },
-
   heroChip: {
     backgroundColor: 'rgba(255,255,255,0.4)',
     alignSelf: 'center',
     marginBottom: 8,
   },
-
   heroChipText: {
     fontWeight: '600',
   },
-
   heroSubLabel: {
     color: '#FFF',
     fontSize: 14,
     textAlign: 'center',
     marginBottom: 16,
-  },
-  loadingContainer: {
-    flex: 1,
-    justifyContent: 'center',
-    alignItems: 'center',
   },
   content: {
     flex: 1,
@@ -351,15 +341,6 @@ const styles = StyleSheet.create({
   scrollContent: {
     paddingHorizontal: AppStyles.spacing.md,
     paddingTop: AppStyles.spacing.md,
-  },
-
-  categoryChip: {
-    backgroundColor: Colors.light.surfaceVariant,
-    alignSelf: 'flex-start',
-  },
-  chipText: {
-    color: Colors.light.text,
-    fontSize: 12,
   },
   statsSection: {
     marginBottom: AppStyles.spacing.lg,
@@ -386,14 +367,14 @@ const styles = StyleSheet.create({
     color: Colors.light.onSurface,
     fontWeight: '700',
     marginTop: AppStyles.spacing.xs,
-    fontSize: 24
+    fontSize: 24,
   },
   statLabel: {
     color: Colors.light.onSurface,
     opacity: 0.9,
     marginTop: AppStyles.spacing.xs,
     textAlign: 'center',
-    fontSize: 16
+    fontSize: 16,
   },
   section: {
     marginBottom: AppStyles.spacing.lg,

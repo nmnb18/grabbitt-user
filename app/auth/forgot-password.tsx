@@ -1,7 +1,7 @@
-
 import { GradientText } from '@/components/ui/gradient-text';
 import { Button } from '@/components/ui/paper-button';
 import { useTheme, useThemeColor } from '@/hooks/use-theme-color';
+import api from '@/services/axiosInstance';
 import { AppStyles } from '@/utils/theme';
 import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
@@ -14,40 +14,34 @@ import {
     StyleSheet,
     View
 } from 'react-native';
-import {
-    Surface,
-    Text,
-    TextInput,
-} from 'react-native-paper';
-import { useAuthStore } from '../../store/authStore';
+import { Surface, Text, TextInput } from 'react-native-paper';
 
-export default function SellerLogin() {
+export default function ForgotPasswordScreen() {
     const [email, setEmail] = useState('');
-    const [password, setPassword] = useState('');
     const [loading, setLoading] = useState(false);
-    const [showPassword, setShowPassword] = useState(false);
 
     const router = useRouter();
-    const { login } = useAuthStore();
-
     const theme = useTheme();
     const backgroundColor = useThemeColor({}, 'background');
-    const surfaceVariantColor = useThemeColor({}, 'surfaceVariant');
     const outlineColor = useThemeColor({}, 'outline');
     const accentColor = useThemeColor({}, 'accent');
 
-    const handleLogin = async () => {
-        if (!email || !password) {
-            Alert.alert('Error', 'Please fill all fields');
-            return;
-        }
+    const handleSend = async () => {
+        if (!email) return Alert.alert('Error', 'Please enter your email');
 
-        setLoading(true);
         try {
-            await login(email, password, 'seller');
-            router.replace('/(drawer)');
-        } catch (error: any) {
-            Alert.alert('Error', error.message);
+            setLoading(true);
+            const resp = await api.post('/auth/request-passwordreset', { email });
+
+            if (!resp.data.success) {
+                Alert.alert('Error', resp.data.error || 'Failed to send reset link');
+                return;
+            }
+
+            Alert.alert('Email Sent', 'Check your inbox for reset link.');
+            router.replace('/auth/login');
+        } catch (err: any) {
+            Alert.alert('Error', err.response?.data?.error || 'Something went wrong');
         } finally {
             setLoading(false);
         }
@@ -60,21 +54,28 @@ export default function SellerLogin() {
                 behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
             >
                 <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+
+                    {/* HEADER */}
                     <View style={styles.header}>
                         <Image
                             source={require('@/assets/images/logo.png')}
                             style={styles.logo}
                         />
-                        <Text style={[styles.subtitle]}>
-                            For Business
-                        </Text>
+                        <Text style={styles.subtitle}>For Business</Text>
                     </View>
 
+                    {/* FORM CARD */}
                     <Surface style={[styles.formCard, { backgroundColor: theme.colors.surface, borderColor: outlineColor }]} elevation={2}>
                         <GradientText style={styles.gradientTitle}>
-                            Login
+                            Forgot Password
                         </GradientText>
+
+                        <Text style={styles.infoText}>
+                            Enter your email and we’ll send you a password reset link.
+                        </Text>
+
                         <View style={styles.form}>
+
                             <TextInput
                                 label="Email"
                                 value={email}
@@ -89,75 +90,43 @@ export default function SellerLogin() {
                                 theme={theme}
                             />
 
-                            <TextInput
-                                label="Password"
-                                value={password}
-                                onChangeText={setPassword}
-                                mode="outlined"
-                                secureTextEntry={!showPassword}
-                                style={[styles.input, { backgroundColor: theme.colors.surface }]}
-                                left={<TextInput.Icon icon="lock" />}
-                                right={
-                                    <TextInput.Icon
-                                        icon={showPassword ? 'eye-off' : 'eye'}
-                                        onPress={() => setShowPassword(!showPassword)}
-                                    />
-                                }
-                                outlineColor={outlineColor}
-                                activeOutlineColor={accentColor}
-                                theme={theme}
-                            />
-
-                            {/* Using the new GrabbittButton component */}
                             <Button
-                                onPress={handleLogin}
+                                onPress={handleSend}
                                 loading={loading}
                                 disabled={loading}
                                 variant="contained"
                                 size="medium"
                                 fullWidth
                             >
-                                Login
+                                Send Reset Link
                             </Button>
 
-                            {/* Outline button example */}
                             <Button
-                                onPress={() => router.push('/auth/register')}
+                                onPress={() => router.back()}
                                 variant="text"
                                 size="medium"
                                 fullWidth
                             >
-                                Don't have an account? Register
+                                Back to Login
                             </Button>
 
-                            <Button
-                                onPress={() => router.push('/auth/forgot-password')}
-                                variant="text"
-                                size="medium"
-                                fullWidth
-                            >
-                                Forgot Password?
-                            </Button>
                         </View>
                     </Surface>
+
                 </ScrollView>
             </KeyboardAvoidingView>
         </View>
     );
 }
 
-// ... styles remain the same (remove old button styles)
+
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    keyboardView: {
-        flex: 1
-    },
+    container: { flex: 1 },
+    keyboardView: { flex: 1 },
+
     logo: {
         width: 400,
         height: 150,
-        alignSelf: 'center',
     },
     scrollContent: {
         flexGrow: 1,
@@ -169,13 +138,6 @@ const styles = StyleSheet.create({
         alignItems: 'center',
         marginBottom: AppStyles.spacing.xl
     },
-    gradientTitle: {
-        fontFamily: 'Poppins',
-        fontSize: 24,
-        fontWeight: '600',
-        textAlign: 'center',
-        marginBottom: AppStyles.spacing.lg,
-    },
     subtitle: {
         textAlign: 'center',
         fontFamily: 'Inter',
@@ -186,8 +148,19 @@ const styles = StyleSheet.create({
         padding: AppStyles.spacing.lg,
         borderWidth: 1,
     },
-    form: {
-        gap: AppStyles.spacing.md
+    gradientTitle: {
+        fontSize: 24,
+        fontWeight: '600',
+        textAlign: 'center',
+        marginBottom: AppStyles.spacing.lg,
     },
-    input: {}
+    infoText: {
+        textAlign: 'center',
+        marginBottom: AppStyles.spacing.lg,
+        color: '#555',
+    },
+    form: {
+        gap: AppStyles.spacing.md,
+    },
+    input: {},
 });

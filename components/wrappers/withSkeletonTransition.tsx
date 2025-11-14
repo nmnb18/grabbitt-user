@@ -21,7 +21,7 @@ export default function withSkeletonTransition<SkeletonProps = any>(
                     Animated.timing(skeletonOpacity, {
                         toValue: 0,
                         duration: 350,
-                        delay: 100,
+                        delay: 2000,
                         useNativeDriver: true,
                     }).start(() => {
                         setShowSkeleton(false);

@@ -4,13 +4,16 @@
     "slug": "grabbitt-seller",
     "version": "1.0.0",
     "orientation": "portrait",
-    "icon": "./assets/images/icon.png",
+    "icon": "./assets/images/favicon.png",
     "scheme": "grabbittseller",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.grabbitt.seller"
+      "bundleIdentifier": "com.grabbitt.seller",
+      "associatedDomains": [
+        "applinks:grabbittseller.page.link" 
+      ]
     },
     "android": {
       "adaptiveIcon": {
@@ -21,7 +24,20 @@
       },
       "edgeToEdgeEnabled": true,
       "package": "com.grabbitt.seller",
-      "predictiveBackGestureEnabled": false
+      "predictiveBackGestureEnabled": false,
+      "intentFilters": [
+        {
+          "action": "VIEW",
+          "autoVerify": true,
+          "category": ["BROWSABLE", "DEFAULT"],
+          "data": [
+            {
+              "scheme": "grabbittseller",
+              "host": "*"
+            }
+          ]
+        }
+      ]
     },
     "web": {
       "bundler": "metro",
