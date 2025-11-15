@@ -30,7 +30,7 @@ export default function ForgotPasswordScreen() {
 
         try {
             setLoading(true);
-            const resp = await api.post('/auth/request-passwordreset', { email });
+            const resp = await api.post('/requestPasswordReset', { email });
 
             if (!resp.data.success) {
                 Alert.alert('Error', resp.data.error || 'Failed to send reset link');

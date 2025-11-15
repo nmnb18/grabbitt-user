@@ -119,7 +119,7 @@ export default function LocationInformation() {
             setSaving(true);
 
             await api.patch(
-                '/seller/update-seller',
+                '/updateSellerProfile',
                 {
                     section: 'location',
                     data: {

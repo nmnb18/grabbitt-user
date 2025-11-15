@@ -47,7 +47,7 @@ export default function VerificationInformation() {
             setSaving(true);
 
             await api.patch(
-                '/seller/update-seller',
+                '/updateSellerProfile',
                 {
                     section: 'verification',
                     data: {

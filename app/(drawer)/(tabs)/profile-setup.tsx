@@ -59,7 +59,7 @@ export default function SellerProfileSetup() {
 
       const idToken = user?.idToken;
 
-      const resp = await api.delete("/auth/delete-seller", {
+      const resp = await api.delete("/deleteSellerAccount", {
         headers: { Authorization: `Bearer ${idToken}` }
       });
 
@@ -102,12 +102,12 @@ export default function SellerProfileSetup() {
       const idToken = user?.idToken;
 
       await api.post(
-        "/auth/reauthenticate",
+        "/reauthenticate",
         { currentPassword }
       );
 
       await api.post(
-        "/auth/change-password",
+        "/changePassword",
         { newPassword }
       );
 

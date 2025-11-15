@@ -3,6 +3,7 @@ import { useFonts } from "expo-font";
 import * as Linking from 'expo-linking';
 import { Stack, useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
+import { StatusBar } from 'react-native';
 import { PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
@@ -33,6 +34,7 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
+      <StatusBar barStyle={'default'} hidden={false} />
       <PaperProvider theme={theme}>
         <Stack screenOptions={{ headerShown: false, statusBarHidden: false }}>
           <Stack.Screen name="index" />

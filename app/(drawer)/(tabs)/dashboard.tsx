@@ -111,7 +111,7 @@ function SellerDashboard() {
       setLoading(true);
 
       // Seller stats
-      const response = await api.get(`${API_URL}/dashboard/seller-stats`);
+      const response = await api.get(`/sellerStats`);
       const { data } = response;
 
       if (!data?.success) {

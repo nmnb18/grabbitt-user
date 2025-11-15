@@ -60,7 +60,7 @@ export default function BusinessInformation() {
             setSaving(true);
 
             await api.patch(
-                "/seller/update-seller",
+                "/updateSellerProfile",
                 {
                     section: "business",
                     data: {

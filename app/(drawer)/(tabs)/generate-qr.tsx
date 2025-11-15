@@ -71,7 +71,7 @@ export default function SellerGenerateQR() {
       // Monthly limit (10)
       try {
         setLoading(true);
-        const qrStats = await api.get('/qr-code/count-monthly');
+        const qrStats = await api.get('/countMonthlyQRCodes');
         const total = qrStats.data?.count || 0;
         if (total >= 10) {
           Alert.alert(

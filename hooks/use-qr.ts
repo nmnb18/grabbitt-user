@@ -35,7 +35,7 @@ export function useSellerQR(options?: UseSellerQROptions) {
             setError(null);
             setLoadingQR(true);
 
-            const resp = await api.get('/qr-code/get-active-qr');
+            const resp = await api.get('/getActiveQR');
 
             if (resp.status === 200 && resp.data?.success && resp.data.data) {
                 setActiveQR(resp.data.data);
@@ -113,7 +113,7 @@ export function useSellerQR(options?: UseSellerQROptions) {
     // --- Create QR ---
     const generateQR = useCallback(
         async (payload: any) => {
-            const resp = await api.post('/qr-code/generate-qr', payload);
+            const resp = await api.post('/generateQRCode', payload);
             await fetchActiveQR(); // refresh active QR
             return resp;
         },

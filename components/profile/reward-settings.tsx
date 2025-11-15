@@ -71,7 +71,7 @@ export default function RewardsSettings() {
             setSaving(true);
 
             await api.patch(
-                "/seller/update-seller",
+                "/updateSellerProfile",
                 {
                     section: "rewards",
                     data: {

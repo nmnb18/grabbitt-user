@@ -51,7 +51,7 @@ export default function AccountInformation({ onOpenChangePassword }: { onOpenCha
             setSaving(true);
 
             await api.patch(
-                '/seller/update-seller',
+                '/updateSellerProfile',
                 {
                     section: 'account',
                     data: {

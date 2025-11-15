@@ -47,7 +47,7 @@ export default function ResetPasswordScreen() {
 
         try {
             setLoading(true);
-            const resp = await api.post('/auth/confirm-password-reset', { oobCode, newPassword: password });
+            const resp = await api.post('/confirmPasswordReset', { oobCode, newPassword: password });
 
             if (!resp.data.success) {
                 Alert.alert('Error', resp.data.error);

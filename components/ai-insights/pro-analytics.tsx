@@ -85,7 +85,7 @@ function SellerProAnalyticsInsights() {
     const fetchAdvancedAnalytics = async () => {
         try {
             setError(null);
-            const resp = await api.get('/seller/advance-analytics', {
+            const resp = await api.get('/sellerAdvancedAnalytics', {
                 headers: { Authorization: `Bearer ${idToken}` },
             });
             setData(resp.data.data);

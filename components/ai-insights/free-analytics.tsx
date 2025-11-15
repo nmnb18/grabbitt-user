@@ -51,7 +51,7 @@ function SellerFreeAIInsights() {
     const fetchStats = async () => {
         try {
             setError(null);
-            const resp = await api.get('/dashboard/seller-stats', {
+            const resp = await api.get('/sellerStats', {
                 headers: { Authorization: `Bearer ${idToken}` },
             });
             setStats(resp.data.data);

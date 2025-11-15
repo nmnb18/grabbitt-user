@@ -33,12 +33,12 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     try {
       set({ loading: true });
 
-      const response = await axios.post(`${API_URL}/auth/register-seller`, payload);
+      const response = await axios.post(`${API_URL}/registerSeller`, payload);
 
       const { uid, token, refreshToken } = response.data;
 
       // Fetch full structured seller profile
-      const details = await axios.get(`${API_URL}/seller/get-seller-details?uid=${uid}`, {
+      const details = await axios.get(`${API_URL}/getSellerDetails?uid=${uid}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -67,7 +67,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   login: async (email, password, role) => {
     try {
       set({ loading: true });
-      const response = await axios.post(`${API_URL}/auth/login-seller`, {
+      const response = await axios.post(`${API_URL}/loginSeller`, {
         email,
         password,
         role
@@ -76,7 +76,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       const { uid, idToken, refreshToken } = response.data;
 
       // Fetch full structured profile
-      const details = await axios.get(`${API_URL}/seller/get-seller-details?uid=${uid}`, {
+      const details = await axios.get(`${API_URL}/getSellerDetails?uid=${uid}`, {
         headers: { Authorization: `Bearer ${idToken}` },
       });
 
@@ -114,7 +114,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         throw new Error("Not authenticated.");
       }
       set({ loading: true });
-      const response = await axios.get(`${API_URL}/seller/get-seller-details?uid=${uid}`, {
+      const response = await axios.get(`${API_URL}/getSellerDetails?uid=${uid}`, {
         headers: {
           'Authorization': `Bearer ${token}`
         }
@@ -149,7 +149,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       // Prefer passed token, or fallback to stored one
       const token = idToken || user?.idToken;
       set({ loading: true });
-      await axios.post(`${API_URL}/auth/logout-seller`, {
+      await axios.post(`${API_URL}/logoutSeller`, {
         uid
       }, {
         headers: {
@@ -192,7 +192,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       const { user } = get();
       if (!user?.refreshToken) return null;
 
-      const response = await axios.post(`${API_URL}/auth/refresh-token`, {
+      const response = await axios.post(`${API_URL}/refreshToken`, {
         refreshToken: user.refreshToken,
       });
 

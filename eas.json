@@ -8,9 +8,6 @@
       "distribution": "internal",
       "ios": {
         "resourceClass": "default"
-      },
-      "env": {
-        "EXPO_PUBLIC_BACKEND_URL": "https://grabbitt-aed50.web.app/api/v1"
       }
     },
     "preview": {
@@ -20,9 +17,6 @@
       },
       "android": {
         "buildType": "apk"
-      },
-      "env": {
-        "EXPO_PUBLIC_BACKEND_URL": "https://grabbitt-aed50.web.app/api/v1"
       }
     },
     "production": {
@@ -31,9 +25,6 @@
       },
       "android": {
         "buildType": "apk"
-      },
-      "env": {
-        "EXPO_PUBLIC_BACKEND_URL": "https://grabbitt-aed50.web.app/api/v1"
       }
     }
   },

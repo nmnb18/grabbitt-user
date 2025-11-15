@@ -40,7 +40,7 @@ export default function SubscriptionScreen() {
         try {
             setLoading(true);
 
-            const response = await api.post(`${API_URL}/payments/create-order`, {
+            const response = await api.post(`/createOrder`, {
                 planId,
                 sellerId: user?.user.uid,
             });
@@ -64,7 +64,7 @@ export default function SubscriptionScreen() {
             RazorpayCheckout.open(options)
                 .then(async (data) => {
                     setVerifying(true);
-                    const verifyRes = await api.post(`${API_URL}/payments/verify-payment`, {
+                    const verifyRes = await api.post(`/verifyPayment`, {
                         ...data,
                         sellerId: user?.user.uid,
                         planId,
