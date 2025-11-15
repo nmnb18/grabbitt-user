@@ -7,7 +7,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
     Alert,
-    Image,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
@@ -72,10 +71,7 @@ export default function ResetPasswordScreen() {
             >
                 <ScrollView contentContainerStyle={styles.scrollContent}>
                     <View style={styles.header}>
-                        <Image
-                            source={require('@/assets/images/logo.png')}
-                            style={styles.logo}
-                        />
+                        <GradientText style={{ fontFamily: 'JostMedium', fontSize: 80, marginTop: 40 }}>grabbitt</GradientText>
                         <Text style={styles.subtitle}>For Business</Text>
                     </View>
 

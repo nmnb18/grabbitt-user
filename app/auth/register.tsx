@@ -9,12 +9,11 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
     Alert,
-    Image,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
     StyleSheet,
-    View,
+    View
 } from 'react-native';
 import {
     Checkbox,
@@ -800,10 +799,7 @@ export default function SellerRegister() {
             >
                 <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
                     <View style={styles.header}>
-                        <Image
-                            source={require('@/assets/images/logo.png')}
-                            style={styles.logo}
-                        />
+                        <GradientText style={{ fontFamily: 'JostMedium', fontSize: 80, marginTop: 40 }}>grabbitt</GradientText>
                         <Text style={[styles.subtitle]}>
                             Seller Registration
                         </Text>
@@ -822,14 +818,13 @@ export default function SellerRegister() {
                         {currentStep === 4 && renderStep4()}
                         {currentStep === 5 && renderStep5()}
 
-                        <View style={[styles.navigation, {
-                            justifyContent: currentStep > 1 ? 'space-between' : 'flex-end'
-                        }]}>
+                        <View style={[styles.navigation]}>
                             {currentStep > 1 && (
                                 <Button
                                     onPress={handlePrevious}
                                     variant="outlined"
                                     size="medium"
+                                    fullWidth
                                 >
                                     Back
                                 </Button>
@@ -840,6 +835,7 @@ export default function SellerRegister() {
                                     onPress={handleNext}
                                     variant="contained"
                                     size="medium"
+                                    fullWidth
                                 >
                                     Next
                                 </Button>
@@ -850,6 +846,7 @@ export default function SellerRegister() {
                                     disabled={loading || !formData.acceptTerms}
                                     variant="contained"
                                     size="medium"
+                                    fullWidth
                                 >
                                     Complete Registration
                                 </Button>
@@ -989,9 +986,8 @@ const styles = StyleSheet.create({
         fontStyle: 'italic',
     },
     navigation: {
-        flexDirection: 'row',
         marginTop: AppStyles.spacing.lg,
-        gap: AppStyles.spacing.md,
+        gap: AppStyles.spacing.lg,
     },
     loginButton: {
         marginTop: AppStyles.spacing.md,

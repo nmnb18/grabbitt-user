@@ -1,9 +1,10 @@
+import { GradientText } from '@/components/ui/gradient-text';
 import { useTheme } from '@/hooks/use-theme-color';
 import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
 import { DrawerActions, useNavigation } from '@react-navigation/native';
 import { Tabs } from 'expo-router';
 import React from 'react';
-import { Dimensions, Image, TouchableOpacity } from 'react-native';
+import { Dimensions, TouchableOpacity } from 'react-native';
 const { width } = Dimensions.get('window');
 const LOGO_WIDTH = width * 0.4;
 
@@ -38,10 +39,7 @@ export default function SellerLayout() {
 
         /** ---------- custom header ---------- */
         headerTitle: () => (
-          <Image
-            source={require('@/assets/images/logo.png')}
-            style={{ width: LOGO_WIDTH, height: LOGO_WIDTH * 0.35 }}
-          />
+          <GradientText style={{ fontFamily: 'JostMedium', fontSize: 40 }}>grabbitt</GradientText>
         ),
 
         headerLeft: () => (

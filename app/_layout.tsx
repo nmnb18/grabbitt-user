@@ -1,4 +1,5 @@
 import { useTheme } from '@/hooks/use-theme-color';
+import { useFonts } from "expo-font";
 import * as Linking from 'expo-linking';
 import { Stack, useRouter } from 'expo-router';
 import React, { useEffect } from 'react';
@@ -6,6 +7,11 @@ import { PaperProvider } from 'react-native-paper';
 import { SafeAreaProvider } from 'react-native-safe-area-context';
 
 export default function RootLayout() {
+  const [loaded] = useFonts({
+    JostRegular: require("../assets/fonts/Jost-Regular.ttf"),
+    JostMedium: require("../assets/fonts/Jost-Medium.ttf"),
+    JostBold: require("../assets/fonts/Jost-Bold.ttf"),
+  });
   const theme = useTheme();
   const router = useRouter();
 
@@ -23,10 +29,12 @@ export default function RootLayout() {
     return () => subscription.remove();
   }, []);
 
+  if (!loaded) return null;
+
   return (
     <SafeAreaProvider>
       <PaperProvider theme={theme}>
-        <Stack screenOptions={{ headerShown: false }}>
+        <Stack screenOptions={{ headerShown: false, statusBarHidden: false }}>
           <Stack.Screen name="index" />
           <Stack.Screen name="auth/login" />
           <Stack.Screen name="auth/register" />

@@ -12,8 +12,11 @@
       "supportsTablet": true,
       "bundleIdentifier": "com.grabbitt.seller",
       "associatedDomains": [
-        "applinks:grabbittseller.page.link" 
-      ]
+        "applinks:grabbittseller.page.link",
+      ],
+      "infoPlist": {
+        "ITSAppUsesNonExemptEncryption": false
+      }
     },
     "android": {
       "adaptiveIcon": {
@@ -29,7 +32,10 @@
         {
           "action": "VIEW",
           "autoVerify": true,
-          "category": ["BROWSABLE", "DEFAULT"],
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ],
           "data": [
             {
               "scheme": "grabbittseller",

@@ -7,7 +7,6 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
     Alert,
-    Image,
     KeyboardAvoidingView,
     Platform,
     ScrollView,
@@ -57,10 +56,7 @@ export default function ForgotPasswordScreen() {
 
                     {/* HEADER */}
                     <View style={styles.header}>
-                        <Image
-                            source={require('@/assets/images/logo.png')}
-                            style={styles.logo}
-                        />
+                        <GradientText style={{ fontFamily: 'JostMedium', fontSize: 80, marginTop: 40 }}>grabbitt</GradientText>
                         <Text style={styles.subtitle}>For Business</Text>
                     </View>
 

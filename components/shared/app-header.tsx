@@ -2,7 +2,8 @@ import { Colors } from '@/utils/theme';
 import { Ionicons } from '@expo/vector-icons';
 import { DrawerActions, useNavigation } from '@react-navigation/native';
 import React from 'react';
-import { Image, StyleSheet, TouchableOpacity, View } from 'react-native';
+import { StyleSheet, TouchableOpacity, View } from 'react-native';
+import { GradientText } from '../ui/gradient-text';
 
 interface AppHeaderProps {
     showMenu?: boolean;
@@ -32,11 +33,7 @@ export const AppHeader: React.FC<AppHeaderProps> = ({
                 <View style={styles.iconButton} />
             )}
 
-            <Image
-                source={require('@/assets/images/logo.png')}
-                style={styles.logo}
-            />
-
+            <GradientText style={{ fontFamily: 'JostMedium', fontSize: 40 }}>grabbitt</GradientText>
             {showNotifications ? (
                 <TouchableOpacity
                     onPress={onNotificationsPress || (() => console.log('Notifications pressed'))}
