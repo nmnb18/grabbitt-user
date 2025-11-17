@@ -76,7 +76,6 @@ function SellerProAnalyticsInsights() {
     const tier = user?.user?.seller_profile?.subscription.tier || 'free';
 
     const [data, setData] = useState<AdvancedAnalytics | null>(null);
-    const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState<string | null>(null);
 
@@ -93,7 +92,6 @@ function SellerProAnalyticsInsights() {
             console.log('Pro analytics error', err.response?.data || err.message);
             setError(err.response?.data?.error || 'Failed to load advanced analytics');
         } finally {
-            setLoading(false);
             setRefreshing(false);
         }
     };

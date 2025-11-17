@@ -33,30 +33,8 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     try {
       set({ loading: true });
 
-      const response = await axios.post(`${API_URL}/registerSeller`, payload);
-
-      const { uid, token, refreshToken } = response.data;
-
+      await axios.post(`${API_URL}/registerSeller`, payload);
       // Fetch full structured seller profile
-      const details = await axios.get(`${API_URL}/getSellerDetails?uid=${uid}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
-
-      const fullUser: User = {
-        success: true,
-        uid,
-        idToken: token,
-        refreshToken,
-        user: details.data.user,
-      };
-
-      await AsyncStorage.setItem("user", JSON.stringify(fullUser));
-
-      set({
-        user: fullUser,
-        idToken: token,
-        loading: false,
-      });
     } catch (err: any) {
       set({ loading: false });
       console.error("Register error:", err.response?.data || err.message);

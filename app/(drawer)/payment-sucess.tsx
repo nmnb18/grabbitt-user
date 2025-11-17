@@ -13,6 +13,16 @@ export default function PaymentSuccess() {
     // Comes from router.push("/payment-success?orderId=GBT-001&plan=pro")
     const { orderId, plan, expiresAt } = useLocalSearchParams();
 
+    const expiresAtValue = Array.isArray(expiresAt) ? expiresAt[0] : expiresAt;
+
+    const formattedDate = new Date(expiresAtValue).toLocaleString("en-IN", {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+    });
+
     return (
         <View style={{ flex: 1, backgroundColor: Colors.light.background }}>
 
@@ -37,7 +47,7 @@ export default function PaymentSuccess() {
                 </Animated.Text>
 
                 <Animated.Text entering={FadeInUp.delay(300).duration(400)} style={styles.orderId}>
-                    Expires At: <Text style={styles.orderIdHighlight}>{expiresAt}</Text>
+                    Expires At: <Text style={styles.orderIdHighlight}>{formattedDate}</Text>
                 </Animated.Text>
 
                 {/* Plan Info */}

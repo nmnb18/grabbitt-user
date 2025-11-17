@@ -327,6 +327,7 @@ export default function SellerRegister() {
             };
 
             await register(payload);
+            Alert.alert('Registration Success', 'Please login with resgitered email id and password to continue.');
             router.push('/auth/login');
         } catch (error: any) {
             Alert.alert('Registration Error', error.message);

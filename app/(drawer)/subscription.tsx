@@ -75,7 +75,6 @@ export default function SubscriptionScreen() {
                         setLoading(false);
                         setSelectedPlan('');
                         setVerifying(false);
-                        Alert.alert('Success', 'Your subscription has been upgraded!');
                         router.push({
                             pathname: "/(drawer)/payment-sucess",
                             params: {
