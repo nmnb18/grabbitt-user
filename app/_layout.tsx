@@ -34,7 +34,7 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle={'default'} hidden={false} />
+      <StatusBar barStyle={'dark-content'} hidden={false} />
       <PaperProvider theme={theme}>
         <Stack screenOptions={{ headerShown: false, statusBarHidden: false }}>
           <Stack.Screen name="index" />

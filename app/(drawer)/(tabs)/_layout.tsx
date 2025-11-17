@@ -17,6 +17,7 @@ export default function SellerLayout() {
       screenOptions={{
         tabBarActiveTintColor: sellerTheme.colors.secondary,
         tabBarInactiveTintColor: sellerTheme.colors.onSurface,
+        headerTitleAlign: "center",
         tabBarStyle: {
           backgroundColor: '#FFFFFF',
           borderTopColor: sellerTheme.colors.outline,
@@ -39,7 +40,10 @@ export default function SellerLayout() {
 
         /** ---------- custom header ---------- */
         headerTitle: () => (
-          <GradientText style={{ fontFamily: 'JostMedium', fontSize: 40 }}>grabbitt</GradientText>
+          <GradientText style={{
+            fontFamily: 'JostMedium', fontSize: 40, textAlignVertical: "center",
+            includeFontPadding: false,
+          }}>grabbitt</GradientText>
         ),
 
         headerLeft: () => (

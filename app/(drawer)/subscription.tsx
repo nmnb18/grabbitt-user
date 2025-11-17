@@ -21,21 +21,23 @@ export default function SubscriptionScreen() {
     const [selectedPlan, setSelectedPlan] = useState('');
     const [verifying, setVerifying] = useState(false);
 
-    const subscription = user?.user?.seller_profile?.subscription
+    const subscription = user?.user?.seller_profile?.subscription;
 
     const currentTier = subscription?.tier ?? 'free';
     const expiryDate = subscription?.expires_at
         ? new Date(subscription?.expires_at._seconds * 1000)
         : null;
 
+    // Sort plans: active plan first
     const sortedPlans = useMemo(() => {
         const activePlan = PLANS.find((p) => p.id === currentTier);
-        const otherPlans = PLANS.filter((p) => p.id !== currentTier);
-        return activePlan ? [activePlan, ...otherPlans] : PLANS;
+        const others = PLANS.filter((p) => p.id !== currentTier);
+        return activePlan ? [activePlan, ...others] : PLANS;
     }, [currentTier]);
 
     const handleBuy = async (planId: string) => {
         if (planId === 'free') return;
+
         setSelectedPlan(planId);
         try {
             setLoading(true);
@@ -46,6 +48,7 @@ export default function SubscriptionScreen() {
             });
 
             const { order_id, key_id, amount, currency } = response.data;
+
             const options = {
                 description: `Grabbitt ${planId.toUpperCase()} Plan`,
                 currency,
@@ -64,6 +67,7 @@ export default function SubscriptionScreen() {
             RazorpayCheckout.open(options)
                 .then(async (data) => {
                     setVerifying(true);
+
                     const verifyRes = await api.post(`/verifyPayment`, {
                         ...data,
                         sellerId: user?.user.uid,
@@ -71,17 +75,19 @@ export default function SubscriptionScreen() {
                     });
 
                     if (verifyRes.data.success) {
-                        const res = await fetchUserDetails(user?.user.uid ?? '', 'seller');
+                        await fetchUserDetails(user?.user.uid ?? '', 'seller');
+
                         setLoading(false);
                         setSelectedPlan('');
                         setVerifying(false);
+
                         router.push({
-                            pathname: "/(drawer)/payment-sucess",
+                            pathname: '/(drawer)/payment-sucess',
                             params: {
                                 orderId: verifyRes.data.subscription.order_id,
                                 plan: planId,
-                                expiresAt: verifyRes.data.subscription.expires_at
-                            }
+                                expiresAt: verifyRes.data.subscription.expires_at,
+                            },
                         });
                     } else {
                         setLoading(false);
@@ -102,32 +108,37 @@ export default function SubscriptionScreen() {
             Alert.alert('Error', 'Unable to start payment.');
         } finally {
             setLoading(false);
-            setSelectedPlan('');
-            setVerifying(false);
         }
     };
 
+    /** -------------------- LOADING SCREEN -------------------- **/
     if (verifying) {
         return (
-            <ScrollView contentContainerStyle={styles.container}>
+            <View style={{ flex: 1, backgroundColor: Colors.light.background }}>
                 <AppHeader />
-                <View style={styles.loadingContainer}>
+
+                <View style={styles.loaderContainer}>
                     <ActivityIndicator size="large" color={Colors.light.primary} />
                     <Text>Please wait! Verifying your payment...</Text>
                 </View>
-            </ScrollView>
+            </View>
         );
     }
 
+    /** -------------------- MAIN SCREEN -------------------- **/
     return (
-        <View style={{ flex: 1, backgroundColor: Colors.light.background }}>
+        <View style={styles.screen}>
             <AppHeader />
-            <ScrollView contentContainerStyle={styles.container}>
+
+            <ScrollView
+                showsVerticalScrollIndicator={false}
+                contentContainerStyle={styles.scrollContainer}
+            >
                 <Text variant="headlineSmall" style={styles.title}>
                     Choose your plan
                 </Text>
 
-                {sortedPlans.map((plan, idx) => {
+                {sortedPlans.map((plan) => {
                     const isCurrent = plan.id === currentTier;
                     const isLocked = currentTier !== 'free' && !isCurrent;
 
@@ -141,13 +152,7 @@ export default function SubscriptionScreen() {
                             elevation={1}
                         >
                             <Card.Content>
-                                <View
-                                    style={{
-                                        flexDirection: 'row',
-                                        justifyContent: 'space-between',
-                                        alignItems: 'center',
-                                    }}
-                                >
+                                <View style={styles.rowBetween}>
                                     <Text
                                         variant="titleLarge"
                                         style={[styles.planName, { color: plan.color }]}
@@ -158,8 +163,6 @@ export default function SubscriptionScreen() {
                                         {plan.price}
                                     </Text>
                                 </View>
-
-
 
                                 <View style={styles.features}>
                                     {plan.features.map((f, i) => (
@@ -174,6 +177,7 @@ export default function SubscriptionScreen() {
                                         Expires on: {expiryDate.toLocaleDateString()}
                                     </Text>
                                 )}
+
                                 {isCurrent && (
                                     <View style={styles.ribbonContainer}>
                                         <Chip
@@ -181,10 +185,11 @@ export default function SubscriptionScreen() {
                                             style={[styles.ribbon, { backgroundColor: plan.color + '20' }]}
                                             textStyle={[styles.ribbonText, { color: plan.color }]}
                                         >
-                                            <Text style={styles.ribbonText}>Current Active Plan</Text>
+                                            Current Active Plan
                                         </Chip>
                                     </View>
                                 )}
+
                                 {!isCurrent && currentTier === 'free' && (
                                     <Button
                                         mode="contained"
@@ -208,76 +213,93 @@ export default function SubscriptionScreen() {
                     );
                 })}
 
-                <View style={{ height: 60 }} />
+                {/* Scroll padding */}
+                <View style={{ height: 100 }} />
             </ScrollView>
         </View>
     );
 }
 
+/* -------------------- STYLES -------------------- */
 const styles = StyleSheet.create({
-    container: {
-        padding: AppStyles.spacing.lg,
+    screen: {
+        flex: 1,
         backgroundColor: Colors.light.background,
-        flex: 1
     },
+
+    scrollContainer: {
+        padding: AppStyles.spacing.lg,
+        paddingBottom: 100, // important for Android scrolling
+    },
+
     title: {
         textAlign: 'center',
         marginBottom: AppStyles.spacing.xl,
         fontWeight: '700',
     },
+
     card: {
         marginBottom: AppStyles.spacing.lg,
         borderRadius: 16,
         backgroundColor: Colors.light.surface,
     },
+
+    rowBetween: {
+        flexDirection: 'row',
+        justifyContent: 'space-between',
+        alignItems: 'center',
+    },
+
     planName: {
         ...AppStyles.typography.heading,
     },
+
     price: {
         ...AppStyles.typography.subheading,
     },
+
     features: {
         marginVertical: AppStyles.spacing.md,
     },
+
     feature: {
         marginBottom: 4,
         color: Colors.light.text,
     },
+
     buyBtn: {
         borderRadius: 8,
-    },
-    ribbonContainer: {
-        width: '100%',
-        marginBottom: 8,
-
+        marginTop: 10,
     },
 
-    ribbon: {
-        justifyContent: 'center',
-        height: 40,
-        backgroundColor: Colors.light.surfaceVariant,
-        padding: 0
-    },
-
-    ribbonText: {
-        textAlign: 'center',
-        fontWeight: '600',
-        width: '100%',
-        padding: 0,
-        color: Colors.light.primary, // fallback if plan.color isn't applied dynamically
-    },
     expiryText: {
         color: Colors.light.accent,
         fontSize: 13,
         marginBottom: 10,
     },
+
+    ribbonContainer: {
+        width: '100%',
+        marginBottom: 10,
+    },
+
+    ribbon: {
+        justifyContent: 'center',
+        height: 38,
+    },
+
+    ribbonText: {
+        fontWeight: '600',
+    },
+
     lockedText: {
         color: Colors.light.secondary,
         fontSize: 12,
         textAlign: 'center',
         marginTop: 8,
     },
-    loadingContainer: {
+
+    loaderContainer: {
         flex: 1,
         justifyContent: 'center',
         alignItems: 'center',
