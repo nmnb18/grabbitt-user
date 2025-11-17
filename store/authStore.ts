@@ -1,4 +1,3 @@
-
 import { LoginResponse as User, UserPayload } from "@/types/auth";
 import { startSubscriptionWatcher } from "@/utils/subscription-watcher";
 import AsyncStorage from "@react-native-async-storage/async-storage";
@@ -16,7 +15,11 @@ interface AuthStore {
   idToken: string | null;
   setUser: (user: User | null) => void;
   register: (payload: UserPayload) => Promise<void>;
-  login: (email: string, password: string, role: "seller" | "user") => Promise<void>;
+  login: (
+    email: string,
+    password: string,
+    role: "seller" | "user"
+  ) => Promise<void>;
   fetchUserDetails: (uid: string, role: "seller" | "user") => Promise<void>;
   logout: (uid: string) => Promise<void>;
   loadUser: () => Promise<void>;
@@ -43,20 +46,24 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   },
 
   login: async (email, password, role) => {
+    console.log("Logging in with role:", API_URL);
     try {
       set({ loading: true });
       const response = await axios.post(`${API_URL}/loginSeller`, {
         email,
         password,
-        role
+        role,
       });
 
       const { uid, idToken, refreshToken } = response.data;
 
       // Fetch full structured profile
-      const details = await axios.get(`${API_URL}/getSellerDetails?uid=${uid}`, {
-        headers: { Authorization: `Bearer ${idToken}` },
-      });
+      const details = await axios.get(
+        `${API_URL}/getSellerDetails?uid=${uid}`,
+        {
+          headers: { Authorization: `Bearer ${idToken}` },
+        }
+      );
 
       const fullUser: User = {
         success: true,
@@ -92,11 +99,14 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
         throw new Error("Not authenticated.");
       }
       set({ loading: true });
-      const response = await axios.get(`${API_URL}/getSellerDetails?uid=${uid}`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
+      const response = await axios.get(
+        `${API_URL}/getSellerDetails?uid=${uid}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
+      );
       const updatedUser: User = {
         ...user!,
         success: true,
@@ -106,15 +116,18 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       set({ user: updatedUser });
       // Restart watcher with new expiry
       const expiry = updatedUser?.user?.seller_profile?.subscription?.expires_at
-        ? updatedUser.user.seller_profile.subscription.expires_at._seconds * 1000
+        ? updatedUser.user.seller_profile.subscription.expires_at._seconds *
+          1000
         : null;
 
       startSubscriptionWatcher(expiry, () => {
-        get().fetchUserDetails(uid, 'seller');
+        get().fetchUserDetails(uid, "seller");
       });
     } catch (err: any) {
       console.error("Fetch user error:", err.response?.data || err.message);
-      throw new Error(err.response?.data?.message || "Failed to fetch user details");
+      throw new Error(
+        err.response?.data?.message || "Failed to fetch user details"
+      );
     } finally {
       set({ loading: false });
     }
@@ -127,13 +140,17 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       // Prefer passed token, or fallback to stored one
       const token = idToken || user?.idToken;
       set({ loading: true });
-      await axios.post(`${API_URL}/logoutSeller`, {
-        uid
-      }, {
-        headers: {
-          'Authorization': `Bearer ${token}`
+      await axios.post(
+        `${API_URL}/logoutSeller`,
+        {
+          uid,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
         }
-      });
+      );
       await AsyncStorage.removeItem("user");
       set({ user: null, loading: false });
     } catch (err) {
@@ -191,5 +208,4 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       return null;
     }
   },
-
 }));

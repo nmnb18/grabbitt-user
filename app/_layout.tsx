@@ -1,11 +1,10 @@
-import { useTheme } from '@/hooks/use-theme-color';
+import { useTheme } from "@/hooks/use-theme-color";
 import { useFonts } from "expo-font";
-import * as Linking from 'expo-linking';
-import { Stack, useRouter } from 'expo-router';
-import React, { useEffect } from 'react';
-import { StatusBar } from 'react-native';
-import { PaperProvider } from 'react-native-paper';
-import { SafeAreaProvider } from 'react-native-safe-area-context';
+import * as Linking from "expo-linking";
+import { Stack, useRouter } from "expo-router";
+import React, { useEffect } from "react";
+import { PaperProvider } from "react-native-paper";
+import { SafeAreaProvider } from "react-native-safe-area-context";
 
 export default function RootLayout() {
   const [loaded] = useFonts({
@@ -18,7 +17,7 @@ export default function RootLayout() {
 
   // 🔥 Listen for incoming deep links
   useEffect(() => {
-    const subscription = Linking.addEventListener('url', (event) => {
+    const subscription = Linking.addEventListener("url", (event) => {
       const parsed = Linking.parse(event.url);
 
       if (parsed?.queryParams?.oobCode) {
@@ -34,17 +33,10 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <StatusBar barStyle={'dark-content'} hidden={false} />
       <PaperProvider theme={theme}>
-        <Stack screenOptions={{ headerShown: false, statusBarHidden: false }}>
-          <Stack.Screen name="index" />
-          <Stack.Screen name="auth/login" />
-          <Stack.Screen name="auth/register" />
-          <Stack.Screen name="auth/forgot-password" />
-          <Stack.Screen name="auth/reset-password" />
-          <Stack.Screen name="auth/reset-success" />
-          <Stack.Screen name="(drawer)" />
-        </Stack>
+        <Stack
+          screenOptions={{ headerShown: false, statusBarHidden: false }}
+        ></Stack>
       </PaperProvider>
     </SafeAreaProvider>
   );

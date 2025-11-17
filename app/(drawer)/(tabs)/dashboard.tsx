@@ -1,18 +1,18 @@
-import { QrCode } from '@/components/shared/qr-code';
-import DashboardSkeleton from '@/components/skeletons/dashboard';
-import { GradientIcon } from '@/components/ui/gradient-icon';
-import { GradientText } from '@/components/ui/gradient-text';
-import { Button } from '@/components/ui/paper-button';
-import withSkeletonTransition from '@/components/wrappers/withSkeletonTransition';
-import { useSellerQR } from '@/hooks/use-qr';
-import { useTheme } from '@/hooks/use-theme-color';
-import api from '@/services/axiosInstance';
-import { SUBSCRIPTION_PLANS } from '@/utils/constant';
-import { AppStyles, Colors } from '@/utils/theme';
-import { MaterialCommunityIcons } from '@expo/vector-icons';
-import Constants from 'expo-constants';
-import { useFocusEffect, useRouter } from 'expo-router';
-import React, { useCallback, useState } from 'react';
+import { QrCode } from "@/components/shared/qr-code";
+import DashboardSkeleton from "@/components/skeletons/dashboard";
+import { GradientIcon } from "@/components/ui/gradient-icon";
+import { GradientText } from "@/components/ui/gradient-text";
+import { Button } from "@/components/ui/paper-button";
+import withSkeletonTransition from "@/components/wrappers/withSkeletonTransition";
+import { useSellerQR } from "@/hooks/use-qr";
+import { useTheme, useThemeColor } from "@/hooks/use-theme-color";
+import api from "@/services/axiosInstance";
+import { SUBSCRIPTION_PLANS } from "@/utils/constant";
+import { AppStyles, Colors } from "@/utils/theme";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
+import Constants from "expo-constants";
+import { useFocusEffect, useRouter } from "expo-router";
+import React, { useCallback, useState } from "react";
 import {
   Alert,
   Image,
@@ -20,9 +20,9 @@ import {
   ScrollView,
   StyleSheet,
   View,
-} from 'react-native';
-import { Card, Chip, Surface, Text } from 'react-native-paper';
-import { useAuthStore } from '../../../store/authStore';
+} from "react-native";
+import { Card, Chip, Surface, Text } from "react-native-paper";
+import { useAuthStore } from "../../../store/authStore";
 
 const API_URL =
   Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL ||
@@ -33,11 +33,18 @@ interface StatCardProps {
   value: number;
   label: string;
   color: string;
+  backgroundColor?: string;
   gradientColors: [string, string];
 }
 
-const StatCard = ({ icon, value, label, gradientColors }: StatCardProps) => (
-  <Card style={styles.statCard}>
+const StatCard = ({
+  icon,
+  value,
+  label,
+  gradientColors,
+  backgroundColor,
+}: StatCardProps) => (
+  <Card style={[styles.statCard, { backgroundColor }]}>
     <View style={styles.statContent}>
       <GradientIcon size={32} name={icon as any} />
       <GradientText colors={gradientColors} style={styles.statValue}>
@@ -71,7 +78,11 @@ const ActionCard = ({
         style={[styles.actionIcon, { backgroundColor: `${iconColor}20` }]}
         elevation={0}
       >
-        <MaterialCommunityIcons name={icon as any} size={28} color={iconColor} />
+        <MaterialCommunityIcons
+          name={icon as any}
+          size={28}
+          color={iconColor}
+        />
       </Surface>
       <View style={styles.actionTextContainer}>
         <Text variant="titleMedium" style={styles.actionTitle}>
@@ -81,11 +92,7 @@ const ActionCard = ({
           {subtitle}
         </Text>
       </View>
-      <MaterialCommunityIcons
-        name="chevron-right"
-        size={24}
-        color="#9CA3AF"
-      />
+      <MaterialCommunityIcons name="chevron-right" size={24} color="#9CA3AF" />
     </Card.Content>
   </Card>
 );
@@ -99,6 +106,8 @@ function SellerDashboard() {
   const [stats, setStats] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
+
+  const backgroundColor = useThemeColor({}, "background");
 
   // ✅ shared QR hook (auto-load + polling)
   const { activeQR, fetchActiveQR } = useSellerQR({
@@ -115,7 +124,7 @@ function SellerDashboard() {
       const { data } = response;
 
       if (!data?.success) {
-        Alert.alert('Error', data?.error || 'Failed to load dashboard stats');
+        Alert.alert("Error", data?.error || "Failed to load dashboard stats");
         return;
       }
 
@@ -132,16 +141,16 @@ function SellerDashboard() {
       // Active QR (this also marks expired ones inactive on backend)
       await fetchActiveQR();
     } catch (error: any) {
-      console.error('Error loading dashboard:', error);
+      console.error("Error loading dashboard:", error);
       if (error.response) {
         Alert.alert(
-          'Server Error',
-          error.response.data?.error || 'Failed to load data from server'
+          "Server Error",
+          error.response.data?.error || "Failed to load data from server"
         );
       } else {
         Alert.alert(
-          'Network Error',
-          'Please check your internet connection and try again.'
+          "Network Error",
+          "Please check your internet connection and try again."
         );
       }
     } finally {
@@ -162,7 +171,7 @@ function SellerDashboard() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor: theme.colors.background }]}>
+    <View style={[styles.container, { backgroundColor }]}>
       <ScrollView
         style={styles.content}
         showsVerticalScrollIndicator={false}
@@ -174,7 +183,7 @@ function SellerDashboard() {
         {/* Welcome Section */}
         <View style={styles.heroContainer}>
           <Image
-            source={require('@/assets/images/hero_banner.png')}
+            source={require("@/assets/images/hero_banner.png")}
             style={styles.heroImage}
           />
           <View style={styles.heroOverlay} />
@@ -191,7 +200,7 @@ function SellerDashboard() {
               textStyle={styles.heroChipText}
             >
               {
-                SUBSCRIPTION_PLANS[sellerProfile?.subscription?.tier ?? 'free']
+                SUBSCRIPTION_PLANS[sellerProfile?.subscription?.tier ?? "free"]
                   .name
               }
             </Chip>
@@ -200,10 +209,10 @@ function SellerDashboard() {
               Manage your loyalty rewards and grow your customers
             </Text>
 
-            {sellerProfile?.subscription?.tier === 'free' && (
+            {sellerProfile?.subscription?.tier === "free" && (
               <Button
                 variant="contained"
-                onPress={() => router.push('/(drawer)/subscription')}
+                onPress={() => router.push("/(drawer)/subscription")}
               >
                 Upgrade Plan
               </Button>
@@ -218,8 +227,9 @@ function SellerDashboard() {
               icon="account-group"
               value={stats?.total_users || 0}
               label="Total Users"
-              color={Colors.light.secondary}
+              color={theme.colors.secondary}
               gradientColors={AppStyles.gradients.secondary}
+              backgroundColor={theme.colors.surface}
             />
             <StatCard
               icon="star-circle"
@@ -227,6 +237,7 @@ function SellerDashboard() {
               label="Points Issued"
               color={Colors.light.secondary}
               gradientColors={AppStyles.gradients.secondary}
+              backgroundColor={theme.colors.surface}
             />
           </View>
           <View style={styles.statsGrid}>
@@ -236,6 +247,7 @@ function SellerDashboard() {
               label="Redemptions"
               color={Colors.light.secondary}
               gradientColors={AppStyles.gradients.secondary}
+              backgroundColor={theme.colors.surface}
             />
             <StatCard
               icon="qrcode"
@@ -243,6 +255,7 @@ function SellerDashboard() {
               label="Total QRs"
               color={Colors.light.secondary}
               gradientColors={[Colors.light.secondary, Colors.light.primary]}
+              backgroundColor={theme.colors.surface}
             />
           </View>
         </View>
@@ -250,25 +263,33 @@ function SellerDashboard() {
         {/* Active QR (auto-expires via backend + hook) */}
         <View style={styles.section}>
           {!activeQR && !loading && (
-            <Card style={{ padding: 20, borderRadius: 16 }}>
-              <Text style={{ textAlign: 'center', fontSize: 16, marginBottom: 12 }}>
+            <Card
+              style={{
+                padding: 20,
+                borderRadius: 16,
+                backgroundColor: theme.colors.surface,
+              }}
+            >
+              <Text
+                style={{
+                  textAlign: "center",
+                  fontSize: 16,
+                  marginBottom: 12,
+                  color: theme.colors.onSurface,
+                }}
+              >
                 Your QR code has expired. Generate a new one.
               </Text>
               <Button
                 variant="contained"
-                onPress={() => router.push('/(drawer)/(tabs)/generate-qr')}
+                onPress={() => router.push("/(drawer)/(tabs)/generate-qr")}
               >
                 Generate New QR
               </Button>
             </Card>
           )}
-          {activeQR && (
-            <QrCode qrMode={activeQR.qr_type} qrData={activeQR} />
-          )}
+          {activeQR && <QrCode qrMode={activeQR.qr_type} qrData={activeQR} />}
         </View>
-
-
-
 
         <View style={styles.bottomSpacer} />
       </ScrollView>
@@ -281,58 +302,58 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   heroContainer: {
-    position: 'relative',
+    position: "relative",
     height: 200,
     borderRadius: 16,
-    overflow: 'hidden',
+    overflow: "hidden",
     marginBottom: AppStyles.spacing.lg,
-    shadowColor: '#000',
+    shadowColor: "#000",
     shadowOpacity: 0.25,
     shadowRadius: 8,
     elevation: 5,
   },
   heroImage: {
-    width: '100%',
-    height: '100%',
-    resizeMode: 'cover',
+    width: "100%",
+    height: "100%",
+    resizeMode: "cover",
   },
   heroOverlay: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: "rgba(0,0,0,0.6)",
   },
   heroContent: {
-    position: 'absolute',
+    position: "absolute",
     top: 0,
     left: 0,
     right: 0,
     bottom: 0,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     padding: 16,
   },
   heroShopName: {
-    color: '#FFF',
-    fontWeight: '700',
+    color: "#FFF",
+    fontWeight: "700",
     fontSize: 22,
     marginBottom: 12,
-    textAlign: 'center',
+    textAlign: "center",
   },
   heroChip: {
-    backgroundColor: 'rgba(255,255,255,0.4)',
-    alignSelf: 'center',
+    backgroundColor: "rgba(255,255,255,0.4)",
+    alignSelf: "center",
     marginBottom: 8,
   },
   heroChipText: {
-    fontWeight: '600',
+    fontWeight: "600",
   },
   heroSubLabel: {
-    color: '#FFF',
+    color: "#FFF",
     fontSize: 14,
-    textAlign: 'center',
+    textAlign: "center",
     marginBottom: 16,
   },
   content: {
@@ -346,26 +367,25 @@ const styles = StyleSheet.create({
     marginBottom: AppStyles.spacing.lg,
   },
   statsGrid: {
-    flexDirection: 'row',
+    flexDirection: "row",
     gap: AppStyles.spacing.sm,
     marginBottom: AppStyles.spacing.sm,
   },
   statCard: {
     flex: 1,
     borderRadius: AppStyles.card.borderRadius,
-    overflow: 'hidden',
-    backgroundColor: Colors.light.surface,
+    overflow: "hidden",
   },
   statContent: {
     padding: AppStyles.spacing.md,
-    alignItems: 'center',
-    justifyContent: 'center',
+    alignItems: "center",
+    justifyContent: "center",
     minHeight: 120,
     borderRadius: AppStyles.card.borderRadius,
   },
   statValue: {
     color: Colors.light.onSurface,
-    fontWeight: '700',
+    fontWeight: "700",
     marginTop: AppStyles.spacing.xs,
     fontSize: 24,
   },
@@ -373,14 +393,14 @@ const styles = StyleSheet.create({
     color: Colors.light.onSurface,
     opacity: 0.9,
     marginTop: AppStyles.spacing.xs,
-    textAlign: 'center',
+    textAlign: "center",
     fontSize: 16,
   },
   section: {
     marginBottom: AppStyles.spacing.lg,
   },
   sectionTitle: {
-    fontWeight: '700',
+    fontWeight: "700",
     marginBottom: AppStyles.spacing.md,
     paddingLeft: 4,
   },
@@ -390,8 +410,8 @@ const styles = StyleSheet.create({
     backgroundColor: Colors.light.surface,
   },
   actionCardContent: {
-    flexDirection: 'row',
-    alignItems: 'center',
+    flexDirection: "row",
+    alignItems: "center",
     paddingVertical: AppStyles.spacing.sm,
     paddingHorizontal: AppStyles.spacing.md,
   },
@@ -399,15 +419,15 @@ const styles = StyleSheet.create({
     width: 56,
     height: 56,
     borderRadius: 28,
-    justifyContent: 'center',
-    alignItems: 'center',
+    justifyContent: "center",
+    alignItems: "center",
     marginRight: AppStyles.spacing.md,
   },
   actionTextContainer: {
     flex: 1,
   },
   actionTitle: {
-    fontWeight: '600',
+    fontWeight: "600",
     marginBottom: 4,
     color: Colors.light.text,
   },

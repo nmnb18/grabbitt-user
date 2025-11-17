@@ -3,13 +3,13 @@
  * Consolidated theme system for the seller app
  */
 
-import { Platform } from 'react-native';
+import { Platform } from "react-native";
 import { MD3LightTheme as DefaultTheme } from "react-native-paper";
 
 // Grabbitt Brand Colors
-const grabbittPrimary = '#e91e63'; // Deep Pink
-const grabbittSecondary = '#ff6b35'; // Orange
-const grabbittAccent = '#9CA3AF'; // Light Gray
+const grabbittPrimary = "#e91e63"; // Deep Pink
+const grabbittSecondary = "#ff6b35"; // Orange
+const grabbittAccent = "#9CA3AF"; // Light Gray
 
 export const Colors = {
   light: {
@@ -19,30 +19,30 @@ export const Colors = {
     accent: grabbittAccent,
 
     // UI colors
-    text: '#262626', // Dark gray for readability
-    background: '#FFFFFF', // Clean white
+    text: "#262626", // Dark gray for readability
+    background: "#FFFFFF", // Clean white
     tint: grabbittPrimary,
     icon: grabbittPrimary,
     tabIconDefault: grabbittAccent,
     tabIconSelected: grabbittPrimary,
 
     // Surface colors
-    surface: '#FFFFFF',
-    surfaceVariant: '#F5F5F5',
-    outline: '#E2E8F0',
+    surface: "#FFFFFF",
+    surfaceVariant: "#F5F5F5",
+    outline: "#E2E8F0",
 
     // Status colors
-    error: '#EF4444',
-    success: '#10B981',
-    warning: '#F59E0B',
+    error: "#EF4444",
+    success: "#10B981",
+    warning: "#F59E0B",
 
     // React Native Paper specific
-    onPrimary: '#FFFFFF',
-    onSecondary: '#FFFFFF',
-    onBackground: '#262626',
-    onSurface: '#262626',
-    surfaceDisabled: '#F5F5F5',
-    onSurfaceDisabled: '#9CA3B8',
+    onPrimary: "#FFFFFF",
+    onSecondary: "#FFFFFF",
+    onBackground: "#262626",
+    onSurface: "#262626",
+    surfaceDisabled: "#F5F5F5",
+    onSurfaceDisabled: "#9CA3B8",
   },
   dark: {
     // Brand colors (same for dark mode)
@@ -51,49 +51,50 @@ export const Colors = {
     accent: grabbittAccent,
 
     // UI colors (adjusted for dark mode)
-    text: '#FFFFFF',
-    background: '#151718',
-    tint: '#FFFFFF',
-    icon: '#9BA1A6',
-    tabIconDefault: '#9BA1A6',
-    tabIconSelected: '#FFFFFF',
+    text: "#FFFFFF",
+    background: "#151718",
+    tint: "#FFFFFF",
+    icon: "#9BA1A6",
+    tabIconDefault: "#9BA1A6",
+    tabIconSelected: "#FFFFFF",
 
     // Surface colors
-    surface: '#1E293B',
-    surfaceVariant: '#334155',
-    outline: '#475569',
+    surface: "#1E293B",
+    surfaceVariant: "#334155",
+    outline: "#475569",
 
     // Status colors
-    error: '#EF4444',
-    success: '#10B981',
-    warning: '#F59E0B',
+    error: "#EF4444",
+    success: "#10B981",
+    warning: "#F59E0B",
 
     // React Native Paper specific
-    onPrimary: '#FFFFFF',
-    onSecondary: '#FFFFFF',
-    onBackground: '#FFFFFF',
-    onSurface: '#FFFFFF',
-    surfaceDisabled: '#334155',
-    onSurfaceDisabled: '#9BA1A6',
+    onPrimary: "#FFFFFF",
+    onSecondary: "#FFFFFF",
+    onBackground: "#FFFFFF",
+    onSurface: "#FFFFFF",
+    surfaceDisabled: "#334155",
+    onSurfaceDisabled: "#9BA1A6",
   },
 };
 
 export const Fonts = Platform.select({
   ios: {
-    sans: 'Inter',
-    heading: 'Poppins',
+    sans: "Inter",
+    heading: "Poppins",
   },
   android: {
-    sans: 'Inter',
-    heading: 'Poppins',
+    sans: "Inter",
+    heading: "Poppins",
   },
   default: {
-    sans: 'Inter',
-    heading: 'Poppins',
+    sans: "Inter",
+    heading: "Poppins",
   },
   web: {
     sans: "Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
-    heading: "Poppins, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
+    heading:
+      "Poppins, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Helvetica, Arial, sans-serif",
   },
 });
 
@@ -190,8 +191,11 @@ export const AppStyles = {
   // Gradients
   gradients: {
     primary: [Colors.light.primary, Colors.light.secondary] as [string, string],
-    secondary: [Colors.light.secondary, Colors.light.primary] as [string, string],
-    accent: [Colors.light.accent, '#6B7280'] as [string, string],
+    secondary: [Colors.light.secondary, Colors.light.primary] as [
+      string,
+      string
+    ],
+    accent: [Colors.light.accent, "#6B7280"] as [string, string],
   },
 
   // Spacing scale
@@ -218,14 +222,14 @@ export const AppStyles = {
   // Shadow styles
   shadows: {
     small: {
-      shadowColor: '#000',
+      shadowColor: "#000",
       shadowOffset: { width: 0, height: 1 },
       shadowOpacity: 0.1,
       shadowRadius: 2,
       elevation: 2,
     },
     medium: {
-      shadowColor: '#000',
+      shadowColor: "#000",
       shadowOffset: { width: 0, height: 2 },
       shadowOpacity: 0.15,
       shadowRadius: 4,
@@ -238,26 +242,26 @@ export const AppStyles = {
     heading: {
       fontFamily: Fonts.heading,
       fontSize: 24,
-      fontWeight: '600' as const,
+      fontWeight: "600" as const,
       color: Colors.light.text,
       lineHeight: 32,
     },
     subheading: {
       fontFamily: Fonts.heading,
       fontSize: 18,
-      fontWeight: '600' as const,
+      fontWeight: "600" as const,
       color: Colors.light.text,
       lineHeight: 28,
     },
     body: {
       fontFamily: Fonts.sans,
       fontSize: 16,
-      fontWeight: '400' as const,
+      fontWeight: "400" as const,
       color: Colors.light.text,
       lineHeight: 24,
     },
   },
   colors: {
-    ...Colors
-  }
+    ...Colors,
+  },
 };

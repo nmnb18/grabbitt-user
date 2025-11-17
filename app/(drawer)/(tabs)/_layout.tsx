@@ -1,15 +1,17 @@
-import { GradientText } from '@/components/ui/gradient-text';
-import { useTheme } from '@/hooks/use-theme-color';
-import { Ionicons, MaterialCommunityIcons } from '@expo/vector-icons';
-import { DrawerActions, useNavigation } from '@react-navigation/native';
-import { Tabs } from 'expo-router';
-import React from 'react';
-import { Dimensions, TouchableOpacity } from 'react-native';
-const { width } = Dimensions.get('window');
+import { GradientText } from "@/components/ui/gradient-text";
+import { useTheme, useThemeColor } from "@/hooks/use-theme-color";
+import { Ionicons, MaterialCommunityIcons } from "@expo/vector-icons";
+import { DrawerActions, useNavigation } from "@react-navigation/native";
+import { Tabs } from "expo-router";
+import React from "react";
+import { Dimensions, TouchableOpacity } from "react-native";
+const { width } = Dimensions.get("window");
 const LOGO_WIDTH = width * 0.4;
 
 export default function SellerLayout() {
   const sellerTheme = useTheme();
+
+  const backgroundColor = useThemeColor({}, "background");
   const navigation = useNavigation<any>(); // <— use `any` to silence openDrawer TS issue
 
   return (
@@ -19,7 +21,7 @@ export default function SellerLayout() {
         tabBarInactiveTintColor: sellerTheme.colors.onSurface,
         headerTitleAlign: "center",
         tabBarStyle: {
-          backgroundColor: '#FFFFFF',
+          backgroundColor,
           borderTopColor: sellerTheme.colors.outline,
           borderTopWidth: 1,
           paddingBottom: 20,
@@ -28,11 +30,11 @@ export default function SellerLayout() {
         },
         tabBarLabelStyle: {
           fontSize: 12,
-          fontWeight: '600',
+          fontWeight: "600",
         },
         headerStyle: {
-          height: 120,
-          backgroundColor: '#FFFFFF',
+          height: 90,
+          backgroundColor,
           elevation: 0, // Android shadow
           shadowOpacity: 0, // iOS shadow
           borderBottomWidth: 0, // Remove bottom border line
@@ -40,10 +42,16 @@ export default function SellerLayout() {
 
         /** ---------- custom header ---------- */
         headerTitle: () => (
-          <GradientText style={{
-            fontFamily: 'JostMedium', fontSize: 40, textAlignVertical: "center",
-            includeFontPadding: false,
-          }}>grabbitt</GradientText>
+          <GradientText
+            style={{
+              fontFamily: "JostMedium",
+              fontSize: 40,
+              textAlignVertical: "center",
+              includeFontPadding: false,
+            }}
+          >
+            grabbitt
+          </GradientText>
         ),
 
         headerLeft: () => (
@@ -51,16 +59,24 @@ export default function SellerLayout() {
             onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
             style={{ marginLeft: 16 }}
           >
-            <Ionicons name="menu" size={26} color="#000" />
+            <Ionicons
+              name="menu"
+              size={26}
+              color={sellerTheme.colors.onSurface}
+            />
           </TouchableOpacity>
         ),
 
         headerRight: () => (
           <TouchableOpacity
-            onPress={() => console.log('Notifications pressed')}
+            onPress={() => console.log("Notifications pressed")}
             style={{ marginRight: 16 }}
           >
-            <Ionicons name="notifications-outline" size={24} color="#000" />
+            <Ionicons
+              name="notifications-outline"
+              size={24}
+              color={sellerTheme.colors.onSurface}
+            />
           </TouchableOpacity>
         ),
       }}
@@ -68,16 +84,20 @@ export default function SellerLayout() {
       <Tabs.Screen
         name="dashboard"
         options={{
-          title: 'Dashboard',
+          title: "Dashboard",
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="view-dashboard" size={size} color={color} />
+            <MaterialCommunityIcons
+              name="view-dashboard"
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
       <Tabs.Screen
         name="generate-qr"
         options={{
-          title: 'QR Codes',
+          title: "QR Codes",
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons name="qrcode" size={size} color={color} />
           ),
@@ -86,18 +106,26 @@ export default function SellerLayout() {
       <Tabs.Screen
         name="profile-setup"
         options={{
-          title: 'Profile',
+          title: "Profile",
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="account-cog" size={size} color={color} />
+            <MaterialCommunityIcons
+              name="account-cog"
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
       <Tabs.Screen
         name="ai-insights"
         options={{
-          title: 'Insights',
+          title: "Insights",
           tabBarIcon: ({ color, size }) => (
-            <MaterialCommunityIcons name="chart-line" size={size} color={color} />
+            <MaterialCommunityIcons
+              name="chart-line"
+              size={size}
+              color={color}
+            />
           ),
         }}
       />
