@@ -20,9 +20,10 @@ export default function SellerLayout() {
         tabBarActiveTintColor: sellerTheme.colors.secondary,
         tabBarInactiveTintColor: sellerTheme.colors.onSurface,
         headerTitleAlign: "center",
+
         tabBarStyle: {
           backgroundColor,
-          borderTopColor: 'transparent',
+          borderTopColor: "transparent",
           borderTopWidth: 1,
           paddingBottom: 20,
           paddingTop: 8,
@@ -33,7 +34,7 @@ export default function SellerLayout() {
           fontWeight: "600",
         },
         headerStyle: {
-          height: Platform.OS === 'ios' ? 120 : 90,
+          height: Platform.OS === "ios" ? 120 : 90,
           backgroundColor,
           elevation: 0, // Android shadow
           shadowOpacity: 0, // iOS shadow
