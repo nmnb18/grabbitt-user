@@ -1,14 +1,15 @@
 import { GradientText } from "@/components/ui/gradient-text";
-import { useTheme } from "@/hooks/use-theme-color";
+import { useThemeColor } from "@/hooks/use-theme-color";
 import { AppStyles } from "@/utils/theme";
 import { Stack } from "expo-router";
 import { StyleSheet, View } from "react-native";
 import { Text } from "react-native-paper";
 
 export default function AuthLayout() {
-  const theme = useTheme();
+
+  const backgroundColor = useThemeColor({}, 'background');
   return (
-    <View style={{ flex: 1, backgroundColor: theme.colors.surface }}>
+    <View style={{ flex: 1, backgroundColor }}>
       {/* Status bar FOR ALL AUTH SCREENS */}
       {/* <StatusBar style="light" /> */}
       <View style={styles.header}>

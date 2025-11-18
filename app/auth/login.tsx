@@ -1,16 +1,14 @@
 import { GradientText } from "@/components/ui/gradient-text";
 import { Button } from "@/components/ui/paper-button";
+import AuthScreenWrapper from "@/components/wrappers/authScreenWrapper";
 import { useTheme, useThemeColor } from "@/hooks/use-theme-color";
 import { AppStyles } from "@/utils/theme";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
 import {
   Alert,
-  KeyboardAvoidingView,
-  Platform,
-  ScrollView,
   StyleSheet,
-  View,
+  View
 } from "react-native";
 import { Surface, TextInput } from "react-native-paper";
 import { useAuthStore } from "../../store/authStore";
@@ -48,140 +46,111 @@ export default function SellerLogin() {
   };
 
   return (
-    <View style={[styles.container, { backgroundColor }]}>
-
-      <KeyboardAvoidingView
-        style={styles.keyboardView}
-        behavior={Platform.OS === "ios" ? "padding" : "height"}
+    <AuthScreenWrapper>
+      <Surface
+        style={[
+          styles.formCard,
+          {
+            backgroundColor: theme.colors.surface,
+            borderColor: outlineColor,
+          },
+        ]}
+        elevation={2}
       >
-        <ScrollView
-          contentContainerStyle={styles.scrollContent}
-          keyboardShouldPersistTaps="handled"
-        >
-
-
-          <Surface
+        <GradientText style={styles.gradientTitle}>Login</GradientText>
+        <View style={styles.form}>
+          <TextInput
+            label="Email"
+            value={email}
+            onChangeText={setEmail}
+            mode="outlined"
+            keyboardType="email-address"
+            autoCapitalize="none"
             style={[
-              styles.formCard,
-              {
-                backgroundColor: theme.colors.surface,
-                borderColor: outlineColor,
-              },
+              styles.input,
+              { backgroundColor: theme.colors.surface },
             ]}
-            elevation={2}
+            left={<TextInput.Icon icon="email" color={theme.colors.onSurface} />}
+            outlineColor={theme.colors.outline}
+            activeOutlineColor={theme.colors.onSurface}
+            theme={{
+              ...theme,
+              colors: {
+                ...theme.colors,
+                onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
+              },
+            }}
+          />
+
+          <TextInput
+            label="Password"
+            value={password}
+            onChangeText={setPassword}
+            mode="outlined"
+            secureTextEntry={!showPassword}
+            style={[
+              styles.input,
+              { backgroundColor: theme.colors.surface },
+            ]}
+            left={<TextInput.Icon icon="lock" color={theme.colors.onSurface} />}
+            right={
+              <TextInput.Icon
+                icon={showPassword ? "eye-off" : "eye"}
+                color={theme.colors.onSurface}
+                onPress={() => setShowPassword(!showPassword)}
+              />
+            }
+            outlineColor={theme.colors.outline}
+            activeOutlineColor={theme.colors.onSurface}
+            theme={{
+              ...theme,
+              colors: {
+                ...theme.colors,
+                onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
+              },
+            }}
+
+          />
+
+          {/* Using the new GrabbittButton component */}
+          <Button
+            onPress={handleLogin}
+            loading={loading}
+            disabled={loading}
+            variant="contained"
+            size="medium"
+            fullWidth
           >
-            <GradientText style={styles.gradientTitle}>Login</GradientText>
-            <View style={styles.form}>
-              <TextInput
-                label="Email"
-                value={email}
-                onChangeText={setEmail}
-                mode="outlined"
-                keyboardType="email-address"
-                autoCapitalize="none"
-                style={[
-                  styles.input,
-                  { backgroundColor: theme.colors.surface },
-                ]}
-                left={<TextInput.Icon icon="email" color={theme.colors.onSurface} />}
-                outlineColor={theme.colors.outline}
-                activeOutlineColor={theme.colors.onSurface}
-                theme={{
-                  ...theme,
-                  colors: {
-                    ...theme.colors,
-                    onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
-                  },
-                }}
-              />
+            Login
+          </Button>
 
-              <TextInput
-                label="Password"
-                value={password}
-                onChangeText={setPassword}
-                mode="outlined"
-                secureTextEntry={!showPassword}
-                style={[
-                  styles.input,
-                  { backgroundColor: theme.colors.surface },
-                ]}
-                left={<TextInput.Icon icon="lock" color={theme.colors.onSurface} />}
-                right={
-                  <TextInput.Icon
-                    icon={showPassword ? "eye-off" : "eye"}
-                    color={theme.colors.onSurface}
-                    onPress={() => setShowPassword(!showPassword)}
-                  />
-                }
-                outlineColor={theme.colors.outline}
-                activeOutlineColor={theme.colors.onSurface}
-                theme={{
-                  ...theme,
-                  colors: {
-                    ...theme.colors,
-                    onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
-                  },
-                }}
+          {/* Outline button example */}
+          <Button
+            onPress={() => router.push("/auth/register")}
+            variant="text"
+            size="medium"
+            fullWidth
+          >
+            Don't have an account? Register
+          </Button>
 
-              />
-
-              {/* Using the new GrabbittButton component */}
-              <Button
-                onPress={handleLogin}
-                loading={loading}
-                disabled={loading}
-                variant="contained"
-                size="medium"
-                fullWidth
-              >
-                Login
-              </Button>
-
-              {/* Outline button example */}
-              <Button
-                onPress={() => router.push("/auth/register")}
-                variant="text"
-                size="medium"
-                fullWidth
-              >
-                Don't have an account? Register
-              </Button>
-
-              <Button
-                onPress={() => router.push("/auth/forgot-password")}
-                variant="text"
-                size="medium"
-                fullWidth
-              >
-                Forgot Password?
-              </Button>
-            </View>
-          </Surface>
-        </ScrollView>
-      </KeyboardAvoidingView>
-    </View>
+          <Button
+            onPress={() => router.push("/auth/forgot-password")}
+            variant="text"
+            size="medium"
+            fullWidth
+          >
+            Forgot Password?
+          </Button>
+        </View>
+      </Surface>
+    </AuthScreenWrapper>
   );
 }
 
 // ... styles remain the same (remove old button styles)
 const styles = StyleSheet.create({
-  container: {
-    flex: 1,
-  },
-  keyboardView: {
-    flex: 1,
-  },
-  logo: {
-    width: 400,
-    height: 150,
-    alignSelf: "center",
-  },
-  scrollContent: {
-    flexGrow: 1,
-    paddingHorizontal: AppStyles.spacing.lg,
-    paddingTop: AppStyles.spacing.xxxl,
-    paddingBottom: AppStyles.spacing.xl,
-  },
+
   gradientTitle: {
     fontFamily: "Poppins",
     fontSize: 24,

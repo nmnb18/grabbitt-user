@@ -1,10 +1,12 @@
+import { useTheme } from "@/hooks/use-theme-color";
 import React from "react";
 import { StyleSheet, View } from "react-native";
 import { Skeleton } from "../ui/skeleton";
 
 export default function ProAnalyticsSkeleton() {
+    const theme = useTheme();
     return (
-        <View style={styles.container}>
+        <View style={[styles.container, { backgroundColor: theme.colors.background }]} >
 
             {/* Header */}
             <Skeleton style={styles.title} />

@@ -4,7 +4,8 @@ import * as Linking from "expo-linking";
 import { Stack, useRouter } from "expo-router";
 import { StatusBar } from "expo-status-bar";
 import * as SystemUI from "expo-system-ui";
-import React, { useEffect } from "react";
+import React, { useEffect, useRef } from "react";
+import { BackHandler, Platform, ToastAndroid } from "react-native";
 import { PaperProvider } from "react-native-paper";
 import { SafeAreaProvider } from "react-native-safe-area-context";
 
@@ -17,6 +18,34 @@ export default function RootLayout() {
 
   const theme = useTheme();
   const router = useRouter();
+  const exitAppRef = useRef(false);
+
+  useEffect(() => {
+    if (Platform.OS !== "android") return;
+
+    const backAction = () => {
+      if (exitAppRef.current) {
+        BackHandler.exitApp(); // EXIT APP
+        return true;
+      }
+
+      exitAppRef.current = true;
+      ToastAndroid.show("Press back again to exit", ToastAndroid.SHORT);
+
+      setTimeout(() => {
+        exitAppRef.current = false;
+      }, 2000); // reset after 2 sec
+
+      return true; // prevent default behavior
+    };
+
+    const backHandler = BackHandler.addEventListener(
+      "hardwareBackPress",
+      backAction
+    );
+
+    return () => backHandler.remove();
+  }, []);
 
   // deep link handler
   useEffect(() => {

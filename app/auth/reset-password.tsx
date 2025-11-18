@@ -1,5 +1,6 @@
 import { GradientText } from '@/components/ui/gradient-text';
 import { Button } from '@/components/ui/paper-button';
+import AuthScreenWrapper from '@/components/wrappers/authScreenWrapper';
 import { useTheme, useThemeColor } from '@/hooks/use-theme-color';
 import api from '@/services/axiosInstance';
 import { AppStyles } from '@/utils/theme';
@@ -7,9 +8,6 @@ import { useLocalSearchParams, useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
     Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
     StyleSheet,
     View
 } from 'react-native';
@@ -64,95 +62,78 @@ export default function ResetPasswordScreen() {
     };
 
     return (
-        <View style={[styles.container, { backgroundColor }]}>
-            <KeyboardAvoidingView
-                style={styles.keyboardView}
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            >
-                <ScrollView contentContainerStyle={styles.scrollContent}>
+        <AuthScreenWrapper>
+            <Surface style={[styles.formCard, { backgroundColor: theme.colors.surface, borderColor: outlineColor }]} elevation={2}>
+                <GradientText style={styles.gradientTitle}>Reset Password</GradientText>
 
+                <View style={styles.form}>
+                    <TextInput
+                        label="New Password"
+                        value={password}
+                        onChangeText={setPassword}
+                        mode="outlined"
+                        secureTextEntry={!show}
+                        style={[styles.input, { backgroundColor: theme.colors.surface }]}
+                        left={<TextInput.Icon color={theme.colors.onSurface} icon="lock" />}
+                        right={<TextInput.Icon color={theme.colors.onSurface} icon={show ? 'eye-off' : 'eye'} onPress={() => setShow(!show)} />}
+                        outlineColor={theme.colors.outline}
+                        activeOutlineColor={theme.colors.onSurface}
+                        theme={{
+                            ...theme,
+                            colors: {
+                                ...theme.colors,
+                                onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
+                            },
+                        }}
+                    />
 
-                    <Surface style={[styles.formCard, { backgroundColor: theme.colors.surface, borderColor: outlineColor }]} elevation={2}>
-                        <GradientText style={styles.gradientTitle}>Reset Password</GradientText>
+                    <TextInput
+                        label="Confirm Password"
+                        value={confirm}
+                        onChangeText={setConfirm}
+                        mode="outlined"
+                        secureTextEntry={!show2}
+                        style={[styles.input, { backgroundColor: theme.colors.surface }]}
+                        left={<TextInput.Icon color={theme.colors.onSurface} icon="lock-check" />}
+                        right={<TextInput.Icon color={theme.colors.onSurface} icon={show2 ? 'eye-off' : 'eye'} onPress={() => setShow2(!show2)} />}
+                        outlineColor={theme.colors.outline}
+                        activeOutlineColor={theme.colors.onSurface}
+                        theme={{
+                            ...theme,
+                            colors: {
+                                ...theme.colors,
+                                onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
+                            },
+                        }}
+                    />
 
-                        <View style={styles.form}>
-                            <TextInput
-                                label="New Password"
-                                value={password}
-                                onChangeText={setPassword}
-                                mode="outlined"
-                                secureTextEntry={!show}
-                                style={[styles.input, { backgroundColor: theme.colors.surface }]}
-                                left={<TextInput.Icon color={theme.colors.onSurface} icon="lock" />}
-                                right={<TextInput.Icon color={theme.colors.onSurface} icon={show ? 'eye-off' : 'eye'} onPress={() => setShow(!show)} />}
-                                outlineColor={theme.colors.outline}
-                                activeOutlineColor={theme.colors.onSurface}
-                                theme={{
-                                    ...theme,
-                                    colors: {
-                                        ...theme.colors,
-                                        onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
-                                    },
-                                }}
-                            />
+                    <Button
+                        variant="contained"
+                        fullWidth
+                        loading={loading}
+                        disabled={loading}
+                        onPress={handleReset}
+                    >
+                        Update Password
+                    </Button>
 
-                            <TextInput
-                                label="Confirm Password"
-                                value={confirm}
-                                onChangeText={setConfirm}
-                                mode="outlined"
-                                secureTextEntry={!show2}
-                                style={[styles.input, { backgroundColor: theme.colors.surface }]}
-                                left={<TextInput.Icon color={theme.colors.onSurface} icon="lock-check" />}
-                                right={<TextInput.Icon color={theme.colors.onSurface} icon={show2 ? 'eye-off' : 'eye'} onPress={() => setShow2(!show2)} />}
-                                outlineColor={theme.colors.outline}
-                                activeOutlineColor={theme.colors.onSurface}
-                                theme={{
-                                    ...theme,
-                                    colors: {
-                                        ...theme.colors,
-                                        onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
-                                    },
-                                }}
-                            />
+                    <Button
+                        variant="text"
+                        fullWidth
+                        onPress={() => router.replace('/auth/login')}
+                    >
+                        Back to Login
+                    </Button>
 
-                            <Button
-                                variant="contained"
-                                fullWidth
-                                loading={loading}
-                                disabled={loading}
-                                onPress={handleReset}
-                            >
-                                Update Password
-                            </Button>
+                </View>
+            </Surface>
+        </AuthScreenWrapper>
 
-                            <Button
-                                variant="text"
-                                fullWidth
-                                onPress={() => router.replace('/auth/login')}
-                            >
-                                Back to Login
-                            </Button>
-
-                        </View>
-                    </Surface>
-                </ScrollView>
-            </KeyboardAvoidingView>
-        </View>
     );
 }
 
 
 const styles = StyleSheet.create({
-    container: { flex: 1 },
-    keyboardView: { flex: 1 },
-    logo: { width: 400, height: 150 },
-    scrollContent: {
-        flexGrow: 1,
-        paddingHorizontal: AppStyles.spacing.lg,
-        paddingTop: AppStyles.spacing.xxxl,
-        paddingBottom: AppStyles.spacing.xl,
-    },
     formCard: {
         borderRadius: 12,
         padding: AppStyles.spacing.lg,

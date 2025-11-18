@@ -1,3 +1,4 @@
+import BlurLoader from "@/components/ui/blur-loader";
 import { GradientIcon } from "@/components/ui/gradient-icon";
 import { useTheme } from "@/hooks/use-theme-color";
 import { useAuthStore } from "@/store/authStore";
@@ -47,7 +48,7 @@ function CustomDrawerContent() {
   const styles = useMemo(() => createStyles(theme), [theme]);
 
   const router = useRouter();
-  const { logout, user } = useAuthStore();
+  const { logout, user, loading } = useAuthStore();
   const version = Constants.expoConfig?.version || "1.0.0";
 
   const handleLogout = () => {
@@ -56,6 +57,8 @@ function CustomDrawerContent() {
       {
         text: "Logout",
         onPress: async () => {
+          // Close drawer immediately
+          // Add small delay so drawer animation finishes
           await logout(user?.uid ?? "");
           router.replace("/auth/login");
         },
@@ -63,15 +66,7 @@ function CustomDrawerContent() {
     ]);
   };
 
-  const MenuItem = ({
-    label,
-    icon,
-    onPress,
-  }: {
-    label: string;
-    icon: keyof typeof Ionicons.glyphMap;
-    onPress: () => void;
-  }) => (
+  const MenuItem = ({ label, icon, onPress }: any) => (
     <TouchableOpacity style={styles.menuItem} onPress={onPress}>
       <GradientIcon name={icon} size={22} />
       <Text style={styles.menuLabel}>{label}</Text>
@@ -80,33 +75,25 @@ function CustomDrawerContent() {
 
   return (
     <SafeAreaView style={styles.safeContainer}>
+      {loading && <BlurLoader />}
+
       <View style={styles.container}>
         <ScrollView style={styles.menuContainer}>
+
           <MenuItem
             label="Dashboard"
             icon="grid"
             onPress={() => router.push("/(drawer)/(tabs)/dashboard")}
           />
-          <MenuItem
-            label="Plans"
-            icon="star"
-            onPress={() => router.push("/subscription")}
-          />
-          <MenuItem
-            label="Contact Us"
-            icon="mail"
-            onPress={() => Linking.openURL("mailto:support@grabbitt.in")}
-          />
-          <MenuItem
-            label="Privacy Policy"
-            icon="lock"
-            onPress={() => Linking.openURL("https://grabbitt.in/privacy")}
-          />
-          <MenuItem
-            label="Terms & Conditions"
-            icon="file"
-            onPress={() => Linking.openURL("https://grabbitt.in/terms")}
-          />
+
+          <MenuItem label="Plans" icon="star" onPress={() => router.push("/subscription")} />
+
+          <MenuItem label="Contact Us" icon="mail" onPress={() => Linking.openURL("mailto:support@grabbitt.in")} />
+
+          <MenuItem label="Privacy Policy" icon="lock" onPress={() => Linking.openURL("https://grabbitt.in/privacy")} />
+
+          <MenuItem label="Terms & Conditions" icon="file" onPress={() => Linking.openURL("https://grabbitt.in/terms")} />
+
         </ScrollView>
 
         <View style={styles.logoutContainer}>
@@ -117,14 +104,14 @@ function CustomDrawerContent() {
           <Text style={styles.footerText}>
             Version {version}
             {"\n"}
-            Maintained & Developed by{" "}
-            <Text style={styles.footerHighlight}>Grabbitt Team</Text>
+            Maintained & Developed by <Text style={styles.footerHighlight}>Grabbitt Team</Text>
           </Text>
         </View>
       </View>
     </SafeAreaView>
   );
 }
+
 
 const createStyles = (theme: any) =>
   StyleSheet.create({

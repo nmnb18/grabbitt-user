@@ -1,5 +1,6 @@
 import { GradientText } from '@/components/ui/gradient-text';
 import { Button } from '@/components/ui/paper-button';
+import AuthScreenWrapper from '@/components/wrappers/authScreenWrapper';
 import { useTheme, useThemeColor } from '@/hooks/use-theme-color';
 import { BUSINESS_TYPES, CATEGORIES, QR_CODE_TYPES } from '@/utils/constant';
 import { isValidPassword } from '@/utils/helper';
@@ -9,9 +10,6 @@ import { useRouter } from 'expo-router';
 import React, { useEffect, useState } from 'react';
 import {
     Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
     StyleSheet,
     View
 } from 'react-native';
@@ -901,96 +899,65 @@ export default function SellerRegister() {
     );
 
     return (
-        <View style={[styles.container, { backgroundColor }]}>
-
-            <KeyboardAvoidingView
-                style={styles.keyboardView}
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
+        <AuthScreenWrapper>
+            <Surface
+                style={[
+                    styles.formCard,
+                    { backgroundColor: theme.colors.surface, borderColor: outlineColor }
+                ]}
+                elevation={2}
             >
-                <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+                <GradientText style={styles.gradientTitle}>
+                    Step {currentStep} of 5
+                </GradientText>
 
+                {renderStepIndicator()}
 
-                    <Surface style={[styles.formCard, { backgroundColor: theme.colors.surface, borderColor: outlineColor }]} elevation={2}>
-                        <GradientText style={styles.gradientTitle}>
-                            Step {currentStep} of 5
-                        </GradientText>
+                {currentStep === 1 && renderStep1()}
+                {currentStep === 2 && renderStep2()}
+                {currentStep === 3 && renderStep3()}
+                {currentStep === 4 && renderStep4()}
+                {currentStep === 5 && renderStep5()}
 
-                        {renderStepIndicator()}
-
-                        {currentStep === 1 && renderStep1()}
-                        {currentStep === 2 && renderStep2()}
-                        {currentStep === 3 && renderStep3()}
-                        {currentStep === 4 && renderStep4()}
-                        {currentStep === 5 && renderStep5()}
-
-                        <View style={[styles.navigation]}>
-                            {currentStep > 1 && (
-                                <Button
-                                    onPress={handlePrevious}
-                                    variant="outlined"
-                                    size="medium"
-                                    fullWidth
-                                >
-                                    Back
-                                </Button>
-                            )}
-
-                            {currentStep < 5 ? (
-                                <Button
-                                    onPress={handleNext}
-                                    variant="contained"
-                                    size="medium"
-                                    fullWidth
-                                >
-                                    Next
-                                </Button>
-                            ) : (
-                                <Button
-                                    onPress={handleRegister}
-                                    loading={loading}
-                                    disabled={loading || !formData.acceptTerms}
-                                    variant="contained"
-                                    size="medium"
-                                    fullWidth
-                                >
-                                    Complete Registration
-                                </Button>
-                            )}
-                        </View>
-
-                        <Button
-                            onPress={() => router.push('/auth/login')}
-                            variant="text"
-                            size="medium"
-                            fullWidth
-                        >
-                            Already have an account? Login
+                {/* 👇 Buttons stay INSIDE scroll area, not fixed */}
+                <View style={{ marginTop: 24, gap: 14 }}>
+                    {currentStep > 1 && (
+                        <Button variant="outlined" fullWidth onPress={handlePrevious}>
+                            Back
                         </Button>
-                    </Surface>
-                </ScrollView>
-            </KeyboardAvoidingView>
-        </View>
+                    )}
+
+                    {currentStep < 5 ? (
+                        <Button variant="contained" fullWidth onPress={handleNext}>
+                            Next
+                        </Button>
+                    ) : (
+                        <Button
+                            variant="contained"
+                            fullWidth
+                            loading={loading}
+                            disabled={!formData.acceptTerms}
+                            onPress={handleRegister}
+                        >
+                            Complete Registration
+                        </Button>
+                    )}
+
+                    <Button
+                        variant="text"
+                        fullWidth
+                        onPress={() => router.push("/auth/login")}
+                    >
+                        Already have an account? Login
+                    </Button>
+                </View>
+            </Surface></AuthScreenWrapper>
     );
+
 }
 
 const styles = StyleSheet.create({
-    container: {
-        flex: 1,
-    },
-    keyboardView: {
-        flex: 1
-    },
-    logo: {
-        width: 400,
-        height: 150,
-        alignSelf: 'center',
-    },
-    scrollContent: {
-        flexGrow: 1,
-        paddingHorizontal: AppStyles.spacing.lg,
-        paddingTop: AppStyles.spacing.xl,
-        paddingBottom: AppStyles.spacing.xl,
-    },
+
     gradientTitle: {
         fontFamily: 'Poppins',
         fontSize: 20,
@@ -1082,6 +1049,9 @@ const styles = StyleSheet.create({
     navigation: {
         marginTop: AppStyles.spacing.lg,
         gap: AppStyles.spacing.xl,
+        padding: 16,
+        paddingBottom: 30,
+        backgroundColor: 'transparent'
     },
     loginButton: {
         marginTop: AppStyles.spacing.md,

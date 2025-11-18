@@ -1,5 +1,6 @@
 import { GradientText } from '@/components/ui/gradient-text';
 import { Button } from '@/components/ui/paper-button';
+import AuthScreenWrapper from '@/components/wrappers/authScreenWrapper';
 import { useTheme, useThemeColor } from '@/hooks/use-theme-color';
 import api from '@/services/axiosInstance';
 import { AppStyles } from '@/utils/theme';
@@ -7,9 +8,6 @@ import { useRouter } from 'expo-router';
 import React, { useState } from 'react';
 import {
     Alert,
-    KeyboardAvoidingView,
-    Platform,
-    ScrollView,
     StyleSheet,
     View
 } from 'react-native';
@@ -47,92 +45,73 @@ export default function ForgotPasswordScreen() {
     };
 
     return (
-        <View style={[styles.container, { backgroundColor }]}>
+        <AuthScreenWrapper>
+            {/* FORM CARD */}
+            <Surface style={[styles.formCard, { backgroundColor: theme.colors.surface, borderColor: outlineColor }]} elevation={2}>
+                <GradientText style={styles.gradientTitle}>
+                    Forgot Password
+                </GradientText>
 
-            <KeyboardAvoidingView
-                style={styles.keyboardView}
-                behavior={Platform.OS === 'ios' ? 'padding' : 'height'}
-            >
-                <ScrollView contentContainerStyle={styles.scrollContent} keyboardShouldPersistTaps="handled">
+                <Text style={[styles.infoText, { color: theme.colors.accent }]}>
+                    Enter your email and we’ll send you a password reset link.
+                </Text>
+
+                <View style={styles.form}>
+
+                    <TextInput
+                        label="Email"
+                        value={email}
+                        onChangeText={setEmail}
+                        mode="outlined"
+                        keyboardType="email-address"
+                        autoCapitalize="none"
+                        style={[styles.input, { backgroundColor: theme.colors.surface }]}
+                        left={<TextInput.Icon icon="email" color={theme.colors.onSurface} />}
+                        outlineColor={theme.colors.outline}
+                        activeOutlineColor={theme.colors.onSurface}
+                        theme={{
+                            ...theme,
+                            colors: {
+                                ...theme.colors,
+                                onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
+                            },
+                        }}
+                    />
+
+                    <Button
+                        onPress={handleSend}
+                        loading={loading}
+                        disabled={loading}
+                        variant="contained"
+                        size="medium"
+                        fullWidth
+                    >
+                        Send Reset Link
+                    </Button>
+
+                    <Button
+                        onPress={() => router.back()}
+                        variant="text"
+                        size="medium"
+                        fullWidth
+                    >
+                        Back to Login
+                    </Button>
+
+                </View>
+            </Surface>
+
+        </AuthScreenWrapper>
 
 
 
-                    {/* FORM CARD */}
-                    <Surface style={[styles.formCard, { backgroundColor: theme.colors.surface, borderColor: outlineColor }]} elevation={2}>
-                        <GradientText style={styles.gradientTitle}>
-                            Forgot Password
-                        </GradientText>
 
-                        <Text style={[styles.infoText, { color: theme.colors.accent }]}>
-                            Enter your email and we’ll send you a password reset link.
-                        </Text>
-
-                        <View style={styles.form}>
-
-                            <TextInput
-                                label="Email"
-                                value={email}
-                                onChangeText={setEmail}
-                                mode="outlined"
-                                keyboardType="email-address"
-                                autoCapitalize="none"
-                                style={[styles.input, { backgroundColor: theme.colors.surface }]}
-                                left={<TextInput.Icon icon="email" color={theme.colors.onSurface} />}
-                                outlineColor={theme.colors.outline}
-                                activeOutlineColor={theme.colors.onSurface}
-                                theme={{
-                                    ...theme,
-                                    colors: {
-                                        ...theme.colors,
-                                        onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
-                                    },
-                                }}
-                            />
-
-                            <Button
-                                onPress={handleSend}
-                                loading={loading}
-                                disabled={loading}
-                                variant="contained"
-                                size="medium"
-                                fullWidth
-                            >
-                                Send Reset Link
-                            </Button>
-
-                            <Button
-                                onPress={() => router.back()}
-                                variant="text"
-                                size="medium"
-                                fullWidth
-                            >
-                                Back to Login
-                            </Button>
-
-                        </View>
-                    </Surface>
-
-                </ScrollView>
-            </KeyboardAvoidingView>
-        </View>
     );
 }
 
 
 const styles = StyleSheet.create({
-    container: { flex: 1 },
-    keyboardView: { flex: 1 },
 
-    logo: {
-        width: 400,
-        height: 150,
-    },
-    scrollContent: {
-        flexGrow: 1,
-        paddingHorizontal: AppStyles.spacing.lg,
-        paddingTop: AppStyles.spacing.xxxl,
-        paddingBottom: AppStyles.spacing.xl,
-    },
     formCard: {
         borderRadius: 12,
         padding: AppStyles.spacing.lg,
