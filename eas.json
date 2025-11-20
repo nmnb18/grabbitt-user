@@ -24,7 +24,8 @@
         "resourceClass": "default"
       },
       "android": {
-        "buildType": "apk"
+        "buildType": "apk",
+        "image": "latest"
       }
     }
   },
