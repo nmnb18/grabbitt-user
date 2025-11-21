@@ -148,13 +148,6 @@ function SellerProAnalyticsInsights() {
                     Upgrade to Pro or Premium to unlock trends, peak hours, QR performance,
                     and customer insights.
                 </Text>
-                <Button
-                    variant="text"
-                    icon="arrow-right-bold-circle"
-                    onPress={() => router.push('/(drawer)/subscription')}
-                >
-                    Go to Plans
-                </Button>
             </View>
         );
     }

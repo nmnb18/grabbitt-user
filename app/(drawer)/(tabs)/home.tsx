@@ -7,7 +7,6 @@ import withSkeletonTransition from "@/components/wrappers/withSkeletonTransition
 import { useSellerQR } from "@/hooks/use-qr";
 import { useTheme } from "@/hooks/use-theme-color";
 import api from "@/services/axiosInstance";
-import { SUBSCRIPTION_PLANS } from "@/utils/constant";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useFocusEffect, useRouter } from "expo-router";
 import React, { useCallback, useState } from "react";
@@ -192,27 +191,13 @@ function SellerDashboard() {
               Hello, {sellerProfile?.business?.shop_name}
             </Text>
 
-            <Chip
-              mode="flat"
-              icon="star"
-              style={styles.heroChip}
-              textStyle={styles.heroChipText}
-            >
-              {SUBSCRIPTION_PLANS[sellerProfile?.subscription?.tier ?? "free"].name}
-            </Chip>
+
 
             <Text variant="bodySmall" style={styles.heroSubLabel}>
               Manage your loyalty rewards and grow your customers
             </Text>
 
-            {sellerProfile?.subscription?.tier === "free" && (
-              <Button
-                variant="contained"
-                onPress={() => router.push("/(drawer)/subscription")}
-              >
-                Upgrade Plan
-              </Button>
-            )}
+
           </View>
         </View>
 

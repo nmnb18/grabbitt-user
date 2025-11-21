@@ -83,12 +83,12 @@ export default function SellerLayout() {
       }}
     >
       <Tabs.Screen
-        name="dashboard"
+        name="home"
         options={{
-          title: "Dashboard",
+          title: "Home",
           tabBarIcon: ({ color, size }) => (
             <MaterialCommunityIcons
-              name="view-dashboard"
+              name="home"
               size={size}
               color={color}
             />

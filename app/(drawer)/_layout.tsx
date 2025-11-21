@@ -81,12 +81,10 @@ function CustomDrawerContent() {
         <ScrollView style={styles.menuContainer}>
 
           <MenuItem
-            label="Dashboard"
-            icon="grid"
-            onPress={() => router.push("/(drawer)/(tabs)/dashboard")}
+            label="Home"
+            icon="Home"
+            onPress={() => router.push("/(drawer)/(tabs)/home")}
           />
-
-          <MenuItem label="Plans" icon="star" onPress={() => router.push("/subscription")} />
 
           <MenuItem label="Contact Us" icon="mail" onPress={() => Linking.openURL("mailto:support@grabbitt.in")} />
 

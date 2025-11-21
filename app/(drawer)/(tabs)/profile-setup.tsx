@@ -163,13 +163,6 @@ export default function SellerProfileSetup() {
               Plan changes are handled on the Subscription page.
             </HelperText>
 
-            <CustomButton
-              variant="outlined"
-              icon="arrow-right-bold-circle"
-              onPress={() => router.push('/(drawer)/subscription')}
-            >
-              Go to Plans
-            </CustomButton>
           </Card.Content>
         </Card>
 
