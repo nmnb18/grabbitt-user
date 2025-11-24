@@ -10,25 +10,34 @@ import {
   StyleSheet,
   View
 } from "react-native";
-import { Surface, TextInput } from "react-native-paper";
-import { useAuthStore } from "../../store/authStore";
+import { Surface, TextInput, SegmentedButtons } from "react-native-paper";
+import { useAuthStore } from "@/store/authStore";
+import { PhoneAuthProvider } from "firebase/auth";
+import { auth } from "@/config/firebase";
 
-export default function SellerLogin() {
+export default function UserLogin() {
+  const [mode, setMode] = useState<"email" | "phone">("email");
+
+  // Email fields
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-  const [loading, setLoading] = useState(false);
+
+  // Phone fields
+  const [phone, setPhone] = useState("");
+
   const [showPassword, setShowPassword] = useState(false);
+  const [loading, setLoading] = useState(false);
 
   const router = useRouter();
   const { login } = useAuthStore();
 
   const theme = useTheme();
-  const backgroundColor = useThemeColor({}, "background");
-  const surfaceVariantColor = useThemeColor({}, "surfaceVariant");
   const outlineColor = useThemeColor({}, "outline");
-  const accentColor = useThemeColor({}, "accent");
 
-  const handleLogin = async () => {
+  //---------------------------------------------------------
+  // EMAIL LOGIN HANDLER
+  //---------------------------------------------------------
+  const handleEmailLogin = async () => {
     if (!email || !password) {
       Alert.alert("Error", "Please fill all fields");
       return;
@@ -36,8 +45,8 @@ export default function SellerLogin() {
 
     setLoading(true);
     try {
-      await login(email, password, "seller");
-      router.replace("/(drawer)");
+      await login(email, password);
+      router.replace("/(drawer)/(tabs)/home");
     } catch (error: any) {
       Alert.alert("Error", error.message);
     } finally {
@@ -45,6 +54,40 @@ export default function SellerLogin() {
     }
   };
 
+  //---------------------------------------------------------
+  // PHONE LOGIN HANDLER
+  //---------------------------------------------------------
+  const handleSendOTP = async () => {
+    if (!phone.startsWith("+")) {
+      Alert.alert("Error", "Phone must include country code, e.g. +91");
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      const provider = new PhoneAuthProvider(auth);
+
+      const verificationId = await provider.verifyPhoneNumber(
+        phone,
+        null as any
+      );
+
+      router.push({
+        pathname: "/auth/verify-otp",
+        params: { verificationId, phone },
+      });
+
+    } catch (error: any) {
+      Alert.alert("OTP Error", error.message);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  //---------------------------------------------------------
+  // MAIN RENDER
+  //---------------------------------------------------------
   return (
     <AuthScreenWrapper>
       <Surface
@@ -58,99 +101,144 @@ export default function SellerLogin() {
         elevation={2}
       >
         <GradientText style={styles.gradientTitle}>Login</GradientText>
+
+        {/* Mode Toggle */}
+        <SegmentedButtons
+          value={mode}
+          onValueChange={(value) => setMode(value as "email" | "phone")}
+          buttons={[
+            { value: "email", label: "Email", icon: "email" },
+            { value: "phone", label: "Phone OTP", icon: "phone" },
+          ]}
+          style={{ marginBottom: 20 }}
+          theme={{ colors: { secondaryContainer: theme.colors.primary, onSecondaryContainer: '#fff' } }}
+        />
+
         <View style={styles.form}>
-          <TextInput
-            label="Email"
-            value={email}
-            onChangeText={setEmail}
-            mode="outlined"
-            keyboardType="email-address"
-            autoCapitalize="none"
-            style={[
-              styles.input,
-              { backgroundColor: theme.colors.surface },
-            ]}
-            left={<TextInput.Icon icon="email" color={theme.colors.onSurface} />}
-            outlineColor={theme.colors.outline}
-            activeOutlineColor={theme.colors.onSurface}
-            theme={{
-              ...theme,
-              colors: {
-                ...theme.colors,
-                onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
-              },
-            }}
-          />
-
-          <TextInput
-            label="Password"
-            value={password}
-            onChangeText={setPassword}
-            mode="outlined"
-            secureTextEntry={!showPassword}
-            style={[
-              styles.input,
-              { backgroundColor: theme.colors.surface },
-            ]}
-            left={<TextInput.Icon icon="lock" color={theme.colors.onSurface} />}
-            right={
-              <TextInput.Icon
-                icon={showPassword ? "eye-off" : "eye"}
-                color={theme.colors.onSurface}
-                onPress={() => setShowPassword(!showPassword)}
+          {mode === "email" ? (
+            <>
+              <TextInput
+                label="Email"
+                value={email}
+                onChangeText={setEmail}
+                mode="outlined"
+                keyboardType="email-address"
+                autoCapitalize="none"
+                left={<TextInput.Icon icon="email" color={theme.colors.onSurface} />}
+                style={[styles.input, { backgroundColor: theme.colors.surface }]}
+                outlineColor={theme.colors.outline}
+                activeOutlineColor={theme.colors.onSurface}
+                theme={{
+                  ...theme,
+                  colors: {
+                    ...theme.colors,
+                    onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
+                  },
+                }}
               />
-            }
-            outlineColor={theme.colors.outline}
-            activeOutlineColor={theme.colors.onSurface}
-            theme={{
-              ...theme,
-              colors: {
-                ...theme.colors,
-                onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
-              },
-            }}
 
-          />
+              <TextInput
+                label="Password"
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry={!showPassword}
+                mode="outlined"
+                style={[styles.input, { backgroundColor: theme.colors.surface }]}
+                left={<TextInput.Icon icon="lock" color={theme.colors.onSurface} />}
+                right={
+                  <TextInput.Icon
+                    icon={showPassword ? "eye-off" : "eye"}
+                    onPress={() => setShowPassword(!showPassword)}
+                  />
+                }
+                outlineColor={theme.colors.outline}
+                activeOutlineColor={theme.colors.onSurface}
+                theme={{
+                  ...theme,
+                  colors: {
+                    ...theme.colors,
+                    onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
+                  },
+                }}
+              />
 
-          {/* Using the new GrabbittButton component */}
-          <Button
-            onPress={handleLogin}
-            loading={loading}
-            disabled={loading}
-            variant="contained"
-            size="medium"
-            fullWidth
-          >
-            Login
-          </Button>
+              <Button
+                onPress={handleEmailLogin}
+                loading={loading}
+                variant="contained"
+                size="medium"
+                fullWidth
+              >
+                Login
+              </Button>
 
-          {/* Outline button example */}
-          <Button
-            onPress={() => router.push("/auth/register")}
-            variant="text"
-            size="medium"
-            fullWidth
-          >
-            Don't have an account? Register
-          </Button>
+              <Button
+                onPress={() => router.push("/auth/register")}
+                variant="text"
+                size="medium"
+                fullWidth
+              >
+                Don’t have an account? Register
+              </Button>
 
-          <Button
-            onPress={() => router.push("/auth/forgot-password")}
-            variant="text"
-            size="medium"
-            fullWidth
-          >
-            Forgot Password?
-          </Button>
+              <Button
+                onPress={() => router.push("/auth/forgot-password")}
+                variant="text"
+                size="medium"
+                fullWidth
+              >
+                Forgot Password?
+              </Button>
+            </>
+          ) : (
+            <>
+              <TextInput
+                label="Phone Number"
+                value={phone}
+                onChangeText={setPhone}
+                mode="outlined"
+                keyboardType="phone-pad"
+                autoCapitalize="none"
+                style={[styles.input, { backgroundColor: theme.colors.surface }]}
+                left={<TextInput.Icon icon="phone" color={theme.colors.onSurface} />}
+                outlineColor={theme.colors.outline}
+                activeOutlineColor={theme.colors.onSurface}
+                theme={{
+                  ...theme,
+                  colors: {
+                    ...theme.colors,
+                    onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
+                  },
+                }}
+              />
+
+              <Button
+                onPress={handleSendOTP}
+                loading={loading}
+                variant="contained"
+                size="medium"
+                fullWidth
+              >
+                Send OTP
+              </Button>
+
+              <Button
+                onPress={() => router.push("/auth/register")}
+                variant="text"
+                size="medium"
+                fullWidth
+              >
+                Don’t have an account? Register
+              </Button>
+            </>
+          )}
         </View>
       </Surface>
     </AuthScreenWrapper>
   );
 }
 
-// ... styles remain the same (remove old button styles)
 const styles = StyleSheet.create({
-
   gradientTitle: {
     fontFamily: "Poppins",
     fontSize: 24,

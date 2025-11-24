@@ -18,9 +18,8 @@ interface AuthStore {
   login: (
     email: string,
     password: string,
-    role: "seller" | "user"
   ) => Promise<void>;
-  fetchUserDetails: (uid: string, role: "seller" | "user") => Promise<void>;
+  fetchUserDetails: (uid: string) => Promise<void>;
   logout: (uid: string) => Promise<void>;
   loadUser: () => Promise<void>;
   refreshToken: () => Promise<string | null>;
@@ -36,8 +35,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     try {
       set({ loading: true });
 
-      await axios.post(`${API_URL}/registerSeller`, payload);
-      // Fetch full structured seller profile
+      await axios.post(`${API_URL}/registerUser`, payload);
     } catch (err: any) {
       set({ loading: false });
       console.error("Register error:", err.response?.data || err.message);
@@ -45,20 +43,21 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
     }
   },
 
-  login: async (email, password, role) => {
+
+  login: async (email, password) => {
     try {
       set({ loading: true });
-      const response = await axios.post(`${API_URL}/loginSeller`, {
+      const response = await axios.post(`${API_URL}/loginUser`, {
         email,
         password,
-        role,
+        role: 'user'
       });
 
       const { uid, idToken, refreshToken } = response.data;
 
       // Fetch full structured profile
       const details = await axios.get(
-        `${API_URL}/getSellerDetails?uid=${uid}`,
+        `${API_URL}/getUserDetails?uid=${uid}`,
         {
           headers: { Authorization: `Bearer ${idToken}` },
         }
@@ -99,7 +98,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       }
       set({ loading: true });
       const response = await axios.get(
-        `${API_URL}/getSellerDetails?uid=${uid}`,
+        `${API_URL}/getUserDetails?uid=${uid}`,
         {
           headers: {
             Authorization: `Bearer ${token}`,
@@ -113,15 +112,6 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       };
       await AsyncStorage.setItem("user", JSON.stringify(updatedUser));
       set({ user: updatedUser });
-      // Restart watcher with new expiry
-      const expiry = updatedUser?.user?.seller_profile?.subscription?.expires_at
-        ? updatedUser.user.seller_profile.subscription.expires_at._seconds *
-        1000
-        : null;
-
-      startSubscriptionWatcher(expiry, () => {
-        get().fetchUserDetails(uid, "seller");
-      });
     } catch (err: any) {
       console.error("Fetch user error:", err.response?.data || err.message);
       throw new Error(
@@ -140,7 +130,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       const token = idToken || user?.idToken;
       set({ loading: true });
       await axios.post(
-        `${API_URL}/logoutSeller`,
+        `${API_URL}/logoutUser`,
         {
           uid,
         },
@@ -165,14 +155,7 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       if (userStr) {
         const user = JSON.parse(userStr);
         set({ user });
-        const expiry = user?.user?.seller_profile?.subscription?.expires_at
-          ? user.user.seller_profile.subscription.expires_at._seconds * 1000
-          : null;
-        if (expiry) {
-          startSubscriptionWatcher(expiry, () => {
-            get().fetchUserDetails(user.uid, "seller");
-          });
-        }
+
       }
       set({ loading: false });
     } catch (error) {

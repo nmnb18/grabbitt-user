@@ -82,7 +82,7 @@ function CustomDrawerContent() {
 
           <MenuItem
             label="Home"
-            icon="Home"
+            icon="home"
             onPress={() => router.push("/(drawer)/(tabs)/home")}
           />
 

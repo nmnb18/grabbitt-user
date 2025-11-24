@@ -18,7 +18,6 @@ export default function AuthLayout() {
         >
           grabbitt
         </GradientText>
-        <Text style={[styles.subtitle]}>For Business</Text>
       </View>
       <Stack
         screenOptions={{
@@ -33,7 +32,7 @@ export default function AuthLayout() {
 const styles = StyleSheet.create({
   header: {
     alignItems: 'center',
-    marginBottom: AppStyles.spacing.lg
+    marginBottom: AppStyles.spacing.sm
   },
   gradientTitle: {
     fontFamily: 'Poppins',

@@ -121,6 +121,7 @@ export const LightTheme = {
     outline: Colors.light.outline,
     surfaceDisabled: Colors.light.surfaceDisabled,
     onSurfaceDisabled: Colors.light.onSurfaceDisabled,
+    text: Colors.light.text
   },
   roundness: 12,
   fonts: {
@@ -183,6 +184,7 @@ export const DarkTheme = {
     outline: Colors.dark.outline,
     surfaceDisabled: Colors.dark.surfaceDisabled,
     onSurfaceDisabled: Colors.dark.onSurfaceDisabled,
+    text: Colors.dark.text
   },
 };
 
@@ -196,6 +198,8 @@ export const AppStyles = {
       string
     ],
     accent: [Colors.light.accent, "#6B7280"] as [string, string],
+    headerLight: ["#FAFAF5", "#F2F4F7"] as [string, string],   // Light mode header
+    headerDark: ["#1F2937", "#111827"] as [string, string],
   },
 
   // Spacing scale

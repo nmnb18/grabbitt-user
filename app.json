@@ -1,26 +1,24 @@
 {
   "expo": {
-    "name": "Grabbitt Seller",
-    "slug": "grabbitt-seller",
+    "name": "Grabbitt",
+    "slug": "grabbitt",
     "version": "1.0.2",
     "orientation": "portrait",
     "icon": "./assets/images/favicon.png",
-    "scheme": "grabbittseller",
+    "scheme": "grabbitt",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
     "ios": {
       "supportsTablet": true,
-      "bundleIdentifier": "com.grabbitt.seller",
-      "associatedDomains": [
-        "applinks:grabbittseller.page.link"
-      ],
+      "bundleIdentifier": "com.grabbitt.user",
+      "googleServicesFile": "./GoogleService-Info.plist",
       "infoPlist": {
         "ITSAppUsesNonExemptEncryption": false,
-        "NSCameraUsageDescription":"We use your camera so you can capture store images, product photos, and documents needed to set up and manage your seller account.",
-        "NSPhotoLibraryUsageDescription": "We use your photo library so you can upload store images, product photos, and documents needed to set up and manage your seller account.",
+        "NSCameraUsageDescription":"We use your camera so you can capture store images, product photos, and documents needed to set up and manage your account.",
+        "NSPhotoLibraryUsageDescription": "We use your photo library so you can upload store images, product photos, and documents needed to set up and manage your account.",
         "NSLocationAlwaysAndWhenInUseUsageDescription": "We use your location to automatically fill your store address and save accurate latitude and longitude. This helps us show your store to nearby users.",
         "NSLocationAlwaysUsageDescription": "We use your location to automatically fill your store address and save accurate latitude and longitude. This helps us show your store to nearby users.",
-        "NSLocationWhenInUseUsageDescription": "We use your location to automatically fill your store address and save accurate latitude and longitude. This helps us show your store to nearby users."
+        "NSLocationWhenInUseUsageDescription": "We use your location to automatically fill your store address and save accurate latitude and longitude. This helps us show you nearby store."
       }
     },
     "android": {
@@ -31,8 +29,9 @@
         "monochromeImage": "./assets/images/android-258.png"
       },
       "edgeToEdgeEnabled": true,
-      "package": "com.grabbitt.seller",
+      "package": "com.grabbitt.user",
       "predictiveBackGestureEnabled": false,
+      "googleServicesFile": "./google-services.json",
       "intentFilters": [
         {
           "action": "VIEW",
@@ -43,7 +42,7 @@
           ],
           "data": [
             {
-              "scheme": "grabbittseller",
+              "scheme": "grabbitt",
               "host": "*"
             }
           ]

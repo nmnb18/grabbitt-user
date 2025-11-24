@@ -1,168 +1,120 @@
-import { QrCode } from "@/components/shared/qr-code";
-import DashboardSkeleton from "@/components/skeletons/dashboard";
-import { GradientIcon } from "@/components/ui/gradient-icon";
-import { GradientText } from "@/components/ui/gradient-text";
-import { Button } from "@/components/ui/paper-button";
-import withSkeletonTransition from "@/components/wrappers/withSkeletonTransition";
-import { useSellerQR } from "@/hooks/use-qr";
-import { useTheme } from "@/hooks/use-theme-color";
-import api from "@/services/axiosInstance";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
-import { useFocusEffect, useRouter } from "expo-router";
-import React, { useCallback, useState } from "react";
+import React, { useEffect, useState, useCallback } from "react";
 import {
-  Alert,
-  Image,
-  RefreshControl,
-  ScrollView,
-  StyleSheet,
   View,
+  StyleSheet,
+  ScrollView,
+  RefreshControl,
+  Image,
+  Alert,
 } from "react-native";
-import { Card, Chip, Surface, Text } from "react-native-paper";
-import { useAuthStore } from "../../../store/authStore";
+import { useRouter } from "expo-router";
+import { useAuthStore } from "@/store/authStore";
+import {
+  Text,
+  Card,
+  Searchbar,
+  Chip,
+  FAB,
+  Surface,
+} from "react-native-paper";
+import * as Location from "expo-location";
+import { MaterialCommunityIcons } from "@expo/vector-icons";
 
-// ------------------------------
-// TYPES
-// ------------------------------
+import api from "@/services/axiosInstance";
+import { useTheme, useThemeColor } from "@/hooks/use-theme-color";
+import { GradientText } from "@/components/ui/gradient-text";
+import { fetchNearbySellers } from "@/services/userService";
 
-interface StatCardProps {
-  icon: string;
-  value: number;
-  label: string;
-  gradientColors?: [string, string];
-  backgroundColor: string;
-}
+const CATEGORIES = [{ label: "All", value: 'all' },
+{ label: "Restaurant/Cafe", value: 'restaurant' },
+{ label: "Shopping", value: 'other' },
+{ label: "Retail Store", value: 'retail' }, { label: "Entertainment", value: 'other' }, { label: "Services", value: 'service' },];
 
-interface ActionCardProps {
-  icon: string;
-  title: string;
-  subtitle: string;
-  onPress: () => void;
-  iconColor: string;
-}
-
-// ------------------------------
-// STAT CARD
-// ------------------------------
-
-const StatCard = ({
-  icon,
-  value,
-  label,
-  gradientColors,
-  backgroundColor,
-}: StatCardProps) => (
-  <Card style={[styles.statCard, { backgroundColor }]} elevation={2}>
-    <View style={styles.statContent}>
-      <GradientIcon size={32} name={icon as any} />
-      <GradientText colors={gradientColors} style={styles.statValue}>
-        {value}
-      </GradientText>
-      <GradientText colors={gradientColors} style={styles.statLabel}>
-        {label}
-      </GradientText>
-    </View>
-  </Card>
-);
-
-// ------------------------------
-// ACTION CARD
-// ------------------------------
-
-const ActionCard = ({
-  icon,
-  title,
-  subtitle,
-  onPress,
-  iconColor,
-}: ActionCardProps) => (
-  <Card onPress={onPress} style={styles.actionCard} elevation={1}>
-    <Card.Content style={styles.actionCardContent}>
-      <Surface style={[styles.actionIcon, { backgroundColor: `${iconColor}20` }]}>
-        <MaterialCommunityIcons name={icon as any} size={28} color={iconColor} />
-      </Surface>
-
-      <View style={styles.actionTextContainer}>
-        <Text variant="titleMedium" style={styles.actionTitle}>
-          {title}
-        </Text>
-        <Text variant="bodySmall" style={styles.actionSubtitle}>
-          {subtitle}
-        </Text>
-      </View>
-
-      <MaterialCommunityIcons name="chevron-right" size={24} color="#9CA3AF" />
-    </Card.Content>
-  </Card>
-);
-
-// ------------------------------
-// MAIN DASHBOARD
-// ------------------------------
-
-function SellerDashboard() {
-  const { user } = useAuthStore();
-  const theme = useTheme();
+export default function UserHome() {
+  const { user, logout } = useAuthStore();
   const router = useRouter();
 
-  const sellerProfile = user?.user.seller_profile;
+  const theme = useTheme();
+  const backgroundColor = useThemeColor({}, "background");
 
-  const [stats, setStats] = useState<any>(null);
+  const [sellers, setSellers] = useState<any[]>([]);
+  const [filtered, setFiltered] = useState<any[]>([]);
+  const [search, setSearch] = useState("");
+  const [category, setCategory] = useState("all");
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
 
-  const backgroundColor = theme.colors.background;
-
-  // Shared QR hook
-  const { activeQR, fetchActiveQR } = useSellerQR({
-    autoLoad: true,
-    pollIntervalMs: 60000,
-  });
-
-  // ------------------------------
-  // LOAD DASHBOARD DATA
-  // ------------------------------
-  const loadData = useCallback(async () => {
+  // ---------------------------------------------------
+  // LOAD SELLERS
+  // ---------------------------------------------------
+  const loadNearbySellers = useCallback(async () => {
     try {
       setLoading(true);
 
-      const response = await api.get(`/sellerStats`);
-      const { data } = response;
+      let lat: number | undefined;
+      let lng: number | undefined;
 
-      if (!data?.success) {
-        Alert.alert("Error", data?.error || "Failed to load dashboard stats");
-        return;
+      // -----------------------------
+      // 1️⃣ Attempt device location
+      // -----------------------------
+      const { status } = await Location.getForegroundPermissionsAsync();
+
+      if (status === "granted") {
+        const loc = await Location.getCurrentPositionAsync({
+          accuracy: Location.Accuracy.Balanced,
+        });
+
+        lat = loc.coords.latitude;
+        lng = loc.coords.longitude;
       }
 
-      const s = data.data;
+      // -----------------------------
+      // 2️⃣ Fetch sellers from backend
+      // backend will fallback to saved location if lat/lng not sent
+      // -----------------------------
+      const data = await fetchNearbySellers(lat, lng);
 
-      setStats({
-        total_users: s.total_users,
-        total_qrs: s.total_qrs,
-        total_scanned: s.total_scanned,
-        total_points_issued: s.total_points_issued,
-        total_redemptions: s.total_redemptions,
-        seller_name: s.seller_name,
-      });
-
-      await fetchActiveQR();
-    } catch (error: any) {
-      console.error(error);
-      Alert.alert(
-        "Error",
-        error?.response?.data?.error || "Could not load dashboard"
-      );
+      if (!data.success) {
+        Alert.alert("Error", data.error || "Could not load sellers");
+        return;
+      }
+      setSellers(data.sellers);
+    } catch (err: any) {
+      console.log(err);
+      Alert.alert("Error", err?.message || "Failed to load sellers");
     } finally {
       setLoading(false);
       setRefreshing(false);
     }
-  }, [fetchActiveQR]);
+  }, []);
 
-  useFocusEffect(
-    useCallback(() => {
-      loadData();
-    }, [loadData])
-  );
+  useEffect(() => {
+    loadNearbySellers();
+  }, []);
+
+  // ---------------------------------------------------
+  // FILTER
+  // ---------------------------------------------------
+  const filterData = (list: any[], query: string, cat: string) => {
+    let result = list;
+
+    if (query) {
+      result = result.filter((s) =>
+        s.shop_name?.toLowerCase().includes(query.toLowerCase())
+      );
+    }
+
+    if (cat !== "all") {
+      result = result.filter((s) => s.category === cat);
+    }
+
+    setFiltered(result);
+  };
+
+  useEffect(() => {
+    filterData(sellers, search, category);
+  }, [search, category, sellers]);
+
 
   return (
     <View style={[styles.container, { backgroundColor }]}>
@@ -171,166 +123,218 @@ function SellerDashboard() {
         style={styles.content}
         contentContainerStyle={styles.scrollContent}
         refreshControl={
-          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadData(); }} />
+          <RefreshControl refreshing={refreshing} onRefresh={() => { setRefreshing(true); loadNearbySellers(); }} />
         }
       >
 
-        {/* ------------------------------
-            HERO BANNER
-        ------------------------------ */}
-        <View style={styles.heroContainer}>
-          <Image
-            source={require("@/assets/images/hero_banner.png")}
-            style={styles.heroImage}
-          />
+        {/* ---------------------------------------------------
+            SEARCH
+        --------------------------------------------------- */}
+        <Searchbar
+          placeholder="Search stores..."
+          onChangeText={setSearch}
+          value={search}
+          iconColor={theme.colors.onSurface}
+          style={[styles.searchBar, { backgroundColor: theme.colors.surface, }]}
+        />
 
-          <View style={styles.heroOverlay} />
+        {/* ---------------------------------------------------
+            CATEGORIES
+        --------------------------------------------------- */}
+        <ScrollView
+          horizontal
+          showsHorizontalScrollIndicator={false}
+          contentContainerStyle={styles.categoriesScroll}
+        >
+          {CATEGORIES.map((c) => (
+            <Chip
+              key={c.label}
+              selected={category === c.value}
+              onPress={() => setCategory(c.value)}
+              selectedColor={category === c.value ? theme.colors.onPrimary : theme.colors.onSurface}
+              style={[
+                styles.categoryChip,
+                { backgroundColor: theme.colors.outline },
+                category === c.value && { backgroundColor: theme.colors.primary },
+              ]}
+              textStyle={[
+                styles.categoryChipText
+              ]}
+            >
+              {c.label}
+            </Chip>
+          ))}
+        </ScrollView>
 
-          <View style={styles.heroContent}>
-            <Text variant="headlineSmall" style={styles.heroShopName}>
-              Hello, {sellerProfile?.business?.shop_name}
-            </Text>
+        {/* ---------------------------------------------------
+            SELLERS LIST
+        --------------------------------------------------- */}
+        <View style={styles.storeSection}>
+          <GradientText style={styles.sectionTitle}>Nearby Stores</GradientText>
+          <Text style={styles.sectionSubtitle}>
+            {filtered.length} stores available
+          </Text>
 
-
-
-            <Text variant="bodySmall" style={styles.heroSubLabel}>
-              Manage your loyalty rewards and grow your customers
-            </Text>
-
-
-          </View>
-        </View>
-
-        {/* ------------------------------
-            STAT CARDS
-        ------------------------------ */}
-        <View style={styles.statsSection}>
-          <View style={styles.statsGrid}>
-            <StatCard
-              icon="account-group"
-              value={stats?.total_users || 0}
-              label="Total Users"
-              backgroundColor={theme.colors.surface}
-            />
-            <StatCard
-              icon="star-circle"
-              value={stats?.total_points_issued || 0}
-              label="Points Issued"
-              backgroundColor={theme.colors.surface}
-            />
-          </View>
-
-          <View style={styles.statsGrid}>
-            <StatCard
-              icon="gift"
-              value={stats?.total_redemptions || 0}
-              label="Redemptions"
-              backgroundColor={theme.colors.surface}
-            />
-            <StatCard
-              icon="qrcode"
-              value={stats?.total_qrs || 0}
-              label="Total QRs"
-              backgroundColor={theme.colors.surface}
-            />
-          </View>
-        </View>
-
-        {/* ------------------------------
-            ACTIVE QR CODE
-        ------------------------------ */}
-        <View style={styles.section}>
-          {!activeQR && !loading && (
-            <Card style={[styles.expiredCard, { backgroundColor: theme.colors.surface }]}>
-              <Text style={[styles.expiredText, { color: theme.colors.onSurface }]}>
-                Your QR code has expired. Generate a new one.
-              </Text>
-
-              <Button
-                variant="contained"
-                onPress={() => router.push("/(drawer)/(tabs)/generate-qr")}
-              >
-                Generate New QR
-              </Button>
+          {filtered.length === 0 ? (
+            <Card style={[styles.emptyCard, { backgroundColor: theme.colors.surface }]}>
+              <Card.Content style={{ alignItems: "center", paddingVertical: 30 }}>
+                <MaterialCommunityIcons name="store-off" size={60} />
+                <Text style={styles.emptyTitle}>No stores found</Text>
+              </Card.Content>
             </Card>
-          )}
+          ) : (
+            filtered.map((seller) => (
+              <Card
+                key={seller.id}
+                // onPress={() => router.push(`/user/seller-details?id=${seller.id}`)}
+                style={[styles.storeCard, { backgroundColor: theme.colors.surface }]}
+              >
+                <Card.Content style={styles.storeCardInner}>
+                  <Surface style={styles.storeIcon}>
+                    <Text style={{ fontSize: 26 }}>🏪</Text>
+                  </Surface>
 
-          {activeQR && <QrCode qrMode={activeQR.qr_type} qrData={activeQR} />}
+                  <View style={styles.storeInfo}>
+                    <Text style={styles.storeName}>{seller.shop_name}</Text>
+
+                    {seller.category && (
+                      <Chip
+                        compact
+                        mode="outlined"
+                        style={[
+                          styles.storeCategory,
+                          { borderColor: theme.colors.primary }
+                        ]}
+                        textStyle={{
+                          color: theme.colors.text,
+                          fontSize: 12,
+                          fontWeight: "600",
+                          marginVertical: 0,
+                          marginTop: 1, // fixes cut text
+                        }}
+                      >
+                        {seller.category.toUpperCase()}
+                      </Chip>
+                    )}
+
+                    {seller.description && (
+                      <Text numberOfLines={2} style={[styles.storeDesc, { color: theme.colors.accent }]}>
+                        {seller.description}
+                      </Text>
+                    )}
+                    <View style={styles.rewardRow}>
+                      <View style={styles.rewardData}>
+                        <MaterialCommunityIcons name="star-circle" size={20} color={theme.colors.primary} />
+                        <Text style={styles.rewardText}>{seller.points_per_visit} pts/visit</Text>
+                      </View>
+                      <View style={styles.rewardData}>
+                        <MaterialCommunityIcons name="gift" size={20} color={theme.colors.primary} />
+                        <Text style={styles.rewardText}>{seller.reward_points} pts reward</Text>
+                      </View>
+                    </View>
+
+
+
+                  </View>
+                </Card.Content>
+              </Card>
+            ))
+          )}
         </View>
 
-        <View style={styles.bottomSpacer} />
+        <View style={{ height: 80 }} />
       </ScrollView>
+
+      {/* ---------------------------------------------------
+            FAB - Scan QR
+        --------------------------------------------------- */}
+      <FAB
+        icon="qrcode-scan"
+        label="Scan QR"
+        style={[styles.fab, { backgroundColor: theme.colors.primary }]}
+        // onPress={() => router.push("/user/scan-qr")}
+        color={theme.colors.onSurface}
+      />
     </View>
   );
 }
 
-export default withSkeletonTransition(DashboardSkeleton)(SellerDashboard);
-
-// ------------------------------
-// STYLES
-// ------------------------------
-
 const styles = StyleSheet.create({
   container: { flex: 1 },
   content: { flex: 1 },
-  scrollContent: { paddingHorizontal: 16, paddingTop: 16 },
+  scrollContent: { paddingHorizontal: 16, paddingBottom: 30, paddingTop: 15 },
 
-  heroContainer: {
-    position: "relative",
-    height: 200,
+  searchBar: {
+    marginBottom: 16,
+    elevation: 3,
+  },
+
+  categoriesScroll: {
+    flexDirection: "row",
+    gap: 10,
+    marginBottom: 20,
+  },
+  categoryChip: {
+    borderRadius: 20,
+  },
+  categoryChipText: {
+    fontWeight: "500",
+  },
+
+  storeSection: { marginBottom: 20 },
+  sectionTitle: {
+    fontSize: 20,
+    fontWeight: "700",
+    marginBottom: 4,
+  },
+  sectionSubtitle: {
+    fontSize: 14,
+    color: "#6B7280",
+    marginBottom: 16,
+  },
+
+  emptyCard: {
     borderRadius: 16,
-    overflow: "hidden",
-    marginBottom: 24,
+    padding: 20,
   },
-  heroImage: { width: "100%", height: "100%", resizeMode: "cover" },
-  heroOverlay: {
-    position: "absolute",
-    top: 0, left: 0, right: 0, bottom: 0,
-    backgroundColor: "rgba(0,0,0,0.6)",
+  emptyTitle: {
+    marginTop: 12,
+    fontSize: 16,
+    fontWeight: "600",
   },
-  heroContent: {
-    position: "absolute",
-    top: 0, left: 0, right: 0, bottom: 0,
+
+  storeCard: {
+    marginBottom: 16,
+    borderRadius: 16,
+  },
+  storeCardInner: {
+    flexDirection: "row",
+    gap: 12,
+    paddingVertical: 12,
+  },
+  storeIcon: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
     justifyContent: "center",
     alignItems: "center",
-    padding: 16,
   },
-  heroShopName: { color: "#FFF", fontWeight: "700", fontSize: 22, marginBottom: 12 },
-  heroChip: { backgroundColor: "rgba(255,255,255,0.4)", marginBottom: 8 },
-  heroChipText: { fontWeight: "600" },
-  heroSubLabel: { color: "#FFF", fontSize: 14, textAlign: "center", marginBottom: 16 },
-
-  statsSection: { marginBottom: 24 },
-  statsGrid: { flexDirection: "row", gap: 12, marginBottom: 12 },
-
-  statCard: {
-    flex: 1,
-    borderRadius: 16,
-    overflow: "hidden",
+  storeInfo: { flex: 1 },
+  storeName: { fontSize: 16, fontWeight: "600", marginBottom: 4 },
+  storeCategory: {
+    paddingHorizontal: 0,
+    marginTop: 6,
+    marginBottom: 6,
+    borderRadius: 16, alignSelf: 'flex-start'
   },
-  statContent: {
-    padding: 16,
-    alignItems: "center",
-    justifyContent: "center",
-    minHeight: 120,
+  storeDesc: { fontSize: 12, marginBottom: 10 },
+  rewardRow: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 6, justifyContent: 'space-between' },
+  rewardData: { flexDirection: "row", alignItems: "center", gap: 6 },
+  rewardText: { fontSize: 12, fontWeight: "500" },
+
+  fab: {
+    position: "absolute",
+    bottom: 50,
+    right: 16,
   },
-  statValue: { fontSize: 24, fontWeight: "700", marginTop: 6 },
-  statLabel: { fontSize: 16, opacity: 0.9, marginTop: 4, textAlign: "center" },
-
-  section: { marginBottom: 24 },
-
-  expiredCard: { padding: 20, borderRadius: 16 },
-  expiredText: { textAlign: "center", fontSize: 16, marginBottom: 12 },
-
-  bottomSpacer: { height: 24 },
-
-  actionCard: { marginBottom: 12, borderRadius: 16 },
-  actionCardContent: { flexDirection: "row", alignItems: "center", paddingVertical: 16 },
-  actionIcon: {
-    width: 56, height: 56, borderRadius: 28,
-    justifyContent: "center", alignItems: "center", marginRight: 12,
-  },
-  actionTextContainer: { flex: 1 },
-  actionTitle: { fontWeight: "600", marginBottom: 4 },
-  actionSubtitle: { opacity: 0.8 },
 });
