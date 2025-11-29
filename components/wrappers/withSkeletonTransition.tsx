@@ -1,51 +1,76 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, View } from 'react-native';
 
+interface SkeletonTransitionProps {
+    loading?: boolean;
+    hasData?: boolean;
+}
+
 export default function withSkeletonTransition<SkeletonProps = any>(
     SkeletonComponent: React.ComponentType<SkeletonProps>
 ) {
-    return function <P extends { loading: boolean }>(
+    return function <P extends SkeletonTransitionProps>(
         WrappedComponent: React.ComponentType<P>
     ) {
         return function (props: P & SkeletonProps) {
-            const { loading } = props;
+            const { loading = false, hasData = false } = props;
 
             const [showSkeleton, setShowSkeleton] = useState(true);
+            const [showContent, setShowContent] = useState(false);
 
             const skeletonOpacity = useRef(new Animated.Value(1)).current;
             const contentOpacity = useRef(new Animated.Value(0)).current;
 
             useEffect(() => {
-                if (!loading) {
-                    // fade out skeleton
+                // Show skeleton when loading OR when no data yet
+                const shouldShowSkeleton = loading || !hasData;
+
+                if (!shouldShowSkeleton && showSkeleton) {
+                    // Data is loaded and we have data → transition to content
                     Animated.timing(skeletonOpacity, {
                         toValue: 0,
-                        duration: 350,
-                        delay: 2000,
+                        duration: 300,
                         useNativeDriver: true,
                     }).start(() => {
                         setShowSkeleton(false);
+                        setShowContent(true);
 
-                        // fade-in actual content
                         Animated.timing(contentOpacity, {
                             toValue: 1,
-                            duration: 350,
+                            duration: 300,
                             useNativeDriver: true,
                         }).start();
                     });
+                } else if (shouldShowSkeleton && !showSkeleton) {
+                    // Need to show skeleton again (e.g., pull to refresh)
+                    setShowContent(false);
+                    setShowSkeleton(true);
+                    skeletonOpacity.setValue(1);
+                    contentOpacity.setValue(0);
                 }
-            }, [loading]);
+            }, [loading, hasData, showSkeleton]);
 
             return (
                 <View style={{ flex: 1 }}>
                     {showSkeleton && (
-                        <Animated.View style={{ opacity: skeletonOpacity, flex: 1 }}>
+                        <Animated.View
+                            style={{
+                                opacity: skeletonOpacity,
+                                flex: 1,
+                                position: showContent ? 'absolute' : 'relative'
+                            }}
+                        >
                             <SkeletonComponent {...(props as any)} />
                         </Animated.View>
                     )}
 
-                    {!showSkeleton && (
-                        <Animated.View style={{ opacity: contentOpacity, flex: 1 }}>
+                    {showContent && (
+                        <Animated.View
+                            style={{
+                                opacity: contentOpacity,
+                                flex: 1,
+                            }}
+                        >
                             <WrappedComponent {...props} />
                         </Animated.View>
                     )}

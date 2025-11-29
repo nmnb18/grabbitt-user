@@ -1,86 +1,45 @@
-import React, { useState, useEffect } from "react";
+import React, { useState } from "react";
 import { View, StyleSheet, Alert } from "react-native";
 
-import { useAuthStore } from "@/store/authStore";
-import {
-    Text,
-    Button,
-    TextInput,
-    Card,
-    ActivityIndicator,
-    Portal,
-    Modal,
-} from "react-native-paper";
-
-import { LinearGradient } from "expo-linear-gradient";
 import { CameraView, useCameraPermissions } from "expo-camera";
-import { MaterialCommunityIcons } from "@expo/vector-icons";
+import RazorpayCheckout from 'react-native-razorpay';
+
+import { useAuthStore } from "@/store/authStore";
 import { useTheme } from "@/hooks/use-theme-color";
-
-import axios from "axios";
-import Constants from "expo-constants";
 import api from "@/services/axiosInstance";
+import { isGrabbittQR, isPaymentQR, parseUPIQR } from "@/utils/helper";
+import { ScannerOverlay } from "@/components/scan-qr/scan-overlay";
+import { PaymentModal } from "@/components/modals/payment-modal";
+import { LoadingView } from "@/components/shared/loading-view";
+import { PermissionView } from "@/components/shared/permission-view";
+import { PaymentSeller } from "@/types/scan-qr";
 
-const API_URL =
-    Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL ||
-    process.env.EXPO_PUBLIC_BACKEND_URL;
+
 
 export default function UserScanQR() {
     const { user } = useAuthStore();
     const theme = useTheme();
+    const { primary, onPrimary, surface, outline } = theme.colors;
 
-    const primary = theme.colors.primary;
-    const onPrimary = theme.colors.onPrimary;
-    const surface = theme.colors.surface;
-
+    // State
     const [permission, requestPermission] = useCameraPermissions();
     const [scanned, setScanned] = useState(false);
-    const [hiddenCode, setHiddenCode] = useState("");
-    const [showCodeModal, setShowCodeModal] = useState(false);
     const [scannedQRData, setScannedQRData] = useState<string | null>(null);
-    const [processing, setProcessing] = useState(false);
+    const [paymentSeller, setPaymentSeller] = useState<PaymentSeller | null>(null);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [paymentAmount, setPaymentAmount] = useState('');
+    const [processingPayment, setProcessingPayment] = useState(false);
 
-    // CAMERA PERMISSION BLOCK
+    // Permission Handlers
     if (!permission) {
-        return (
-            <View style={styles.center}>
-                <ActivityIndicator size="large" color={primary} />
-            </View>
-        );
+        return <LoadingView color={primary} />;
     }
 
     if (!permission.granted) {
-        return (
-            <View style={styles.center}>
-                <LinearGradient
-                    colors={[primary, theme.colors.secondary]}
-                    style={styles.permissionWrapper}
-                >
-                    <MaterialCommunityIcons name="camera-off" size={80} color={onPrimary} />
-
-                    <Text variant="headlineSmall" style={[styles.permissionTitle, { color: onPrimary }]}>
-                        Camera Access Needed
-                    </Text>
-
-                    <Text variant="bodyMedium" style={[styles.permissionText, { color: onPrimary }]}>
-                        Enable camera to scan QR codes
-                    </Text>
-
-                    <Button
-                        mode="contained"
-                        onPress={requestPermission}
-                        style={styles.permissionBtn}
-                        buttonColor={onPrimary}
-                        textColor={primary}
-                    >
-                        Enable Camera
-                    </Button>
-                </LinearGradient>
-            </View>
-        );
+        return <PermissionView onRequestPermission={requestPermission} primary={primary} onPrimary={onPrimary} />;
     }
 
-    // ON QR SCANNED
+    // Core Handlers
     const handleBarcodeScanned = async ({ data }: { data: string }) => {
         if (scanned) return;
 
@@ -88,159 +47,176 @@ export default function UserScanQR() {
         setScannedQRData(data);
 
         try {
-            const checkResponse = await api.get(`${API_URL}/api/qr/check/${data}`);
-
-            if (checkResponse.data.requires_code) {
-                setShowCodeModal(true);
+            if (isPaymentQR(data)) {
+                await handlePaymentQRScan(data);
+            } else if (isGrabbittQR(data)) {
+                await handleGrabbittQRScan(data);
             } else {
-                await processQRScan(data);
+                showAlert("Unknown QR", "This QR code format is not supported.");
             }
-        } catch {
-            await processQRScan(data);
+        } catch (error) {
+            console.error('QR Scan Error:', error);
+            showAlert("Error", "Failed to process QR code");
         }
     };
 
-    const processQRScan = async (qrData: string, code?: string) => {
-        setProcessing(true);
+    const handlePaymentQRScan = async (qrData: string) => {
+        const upiData = parseUPIQR(qrData);
+
+        if (!upiData.pa) {
+            showAlert("Invalid Payment QR", "Could not extract UPI ID from this QR code.");
+            return;
+        }
+
+        const sellerResponse = await api.post('/findSellerByUPI', { upiId: upiData.pa });
+
+        if (!sellerResponse.data.success) {
+            showAlert("Seller Not Found", "This UPI ID is not registered with any Grabbitt seller.");
+            return;
+        }
+
+        setPaymentSeller(sellerResponse.data.seller);
+        setShowPaymentModal(true);
+    };
+
+    const handleGrabbittQRScan = async (qrData: string) => {
+        // TODO: Implement Grabbitt QR scanning logic
+        Alert.alert("Grabbitt QR", "Grabbitt QR scanning will be implemented soon!");
+        resetScanState();
+    };
+
+    const handlePayment = async () => {
+        if (!paymentSeller || !paymentAmount) return;
+
+        setProcessingPayment(true);
 
         try {
-            const payload: any = { qr_code_data: qrData };
-            if (code) payload.hidden_code = code;
+            const amount = parseFloat(paymentAmount);
+            const orderResponse = await api.post('/createOrderForUser', {
+                sellerId: paymentSeller.id,
+                amount: amount,
+                reason: 'store_payment',
+                payment_mode: 'upi'
+            });
 
-            const response = await api.post(
-                `${API_URL}/api/qr/scan`,
-                payload,
-            );
+            if (!orderResponse.data.success) {
+                throw new Error('Failed to create payment order');
+            }
 
-            Alert.alert(
-                "🎉 Success!",
-                `You earned ${response.data.points_earned} points!\n\nTotal points: ${response.data.total_points}`,
-                [{ text: "Great!", onPress: resetScanState }]
-            );
+            await processRazorpayPayment(orderResponse.data, amount);
         } catch (error: any) {
-            Alert.alert(
-                "Error",
-                error?.response?.data?.detail || "Failed to scan QR code",
-                [{ text: "Try Again", onPress: resetScanState }]
-            );
+            console.error('Payment Error:', error);
+            showAlert("Payment Error", error.response?.data?.error || "Failed to process payment");
         } finally {
-            setProcessing(false);
+            setProcessingPayment(false);
+            setShowPaymentModal(false);
         }
     };
 
+    const processRazorpayPayment = async (orderData: any, amount: number) => {
+        const { order_id, key_id, amount: orderAmount } = orderData;
+
+        const options = {
+            description: `Payment to ${paymentSeller!.shop_name}`,
+            currency: 'INR',
+            key: key_id,
+            amount: orderAmount.toString(),
+            name: 'Grabbitt',
+            order_id: order_id,
+            prefill: {
+                email: user?.user.email,
+                contact: user?.user.phone,
+                name: user?.user.name,
+            },
+            theme: { color: primary },
+        };
+
+        RazorpayCheckout.open(options)
+            .then(async (razorpayData) => {
+                await verifyPayment(order_id, razorpayData, amount);
+            })
+            .catch((error: any) => {
+                console.error('Razorpay Error:', error);
+                showAlert("Payment Failed", error.description || "Payment was not completed");
+            });
+    };
+
+    const verifyPayment = async (orderId: string, razorpayData: any, amount: number) => {
+        const verifyResponse = await api.post('/verifyPaymentForUser', {
+            razorpay_order_id: orderId,
+            razorpay_payment_id: razorpayData.razorpay_payment_id,
+            razorpay_signature: razorpayData.razorpay_signature,
+            sellerId: paymentSeller!.id,
+            amount: amount
+        });
+
+        if (verifyResponse.data.success) {
+            const pointsMessage = verifyResponse.data.points_earned > 0
+                ? `\n\nYou earned ${verifyResponse.data.points_earned} points!`
+                : '';
+
+            showAlert(
+                "🎉 Payment Successful!",
+                `Payment of ₹${amount} completed successfully!${pointsMessage}`,
+                true
+            );
+        } else {
+            throw new Error('Payment verification failed');
+        }
+    };
+
+    // Helper Functions
     const resetScanState = () => {
         setScanned(false);
-        setShowCodeModal(false);
-        setHiddenCode("");
         setScannedQRData(null);
+        setPaymentSeller(null);
+        setPaymentAmount('');
+        setShowPaymentModal(false);
+    };
+
+    const showAlert = (title: string, message: string, success: boolean = false) => {
+        Alert.alert(title, message, [{ text: "OK", onPress: success ? resetScanState : undefined }]);
+    };
+
+    const isValidPaymentAmount = () => {
+        const amount = parseFloat(paymentAmount);
+        return !isNaN(amount) && amount > 0;
     };
 
     return (
-        <View style={{ flex: 1, backgroundColor: "black" }}>
-
-            {/* CAMERA SCANNER */}
+        <View style={styles.container}>
+            {/* Camera Scanner */}
             {!scanned && (
                 <CameraView
                     style={StyleSheet.absoluteFillObject}
                     onBarcodeScanned={handleBarcodeScanned}
-                    barcodeScannerSettings={{
-                        barcodeTypes: ["qr"],
-                    }}
+                    barcodeScannerSettings={{ barcodeTypes: ["qr"] }}
                 />
             )}
 
-            {/* OVERLAY UI */}
-            <View style={styles.overlay}>
-                <LinearGradient colors={["rgba(0,0,0,0.7)", "transparent"]} style={styles.topOverlay}>
-                    <Text style={styles.topTitle}>Scan QR Code</Text>
-                    <Text style={styles.topSubtitle}>Align QR inside the frame</Text>
-                </LinearGradient>
+            {/* Scanner Overlay */}
+            <ScannerOverlay />
 
-                <View style={styles.frame}>
-                    <View style={[styles.corner, styles.cornerTL]} />
-                    <View style={[styles.corner, styles.cornerTR]} />
-                    <View style={[styles.corner, styles.cornerBL]} />
-                    <View style={[styles.corner, styles.cornerBR]} />
-                </View>
-
-                <LinearGradient colors={["transparent", "rgba(0,0,0,0.7)"]} style={styles.bottomOverlay}>
-                    <MaterialCommunityIcons name="qrcode-scan" size={42} color="#FFF" />
-                    <Text style={styles.bottomText}>Scan to earn rewards</Text>
-                </LinearGradient>
-            </View>
-
-            {/* HIDDEN CODE MODAL */}
-            <Portal>
-                <Modal visible={showCodeModal} onDismiss={resetScanState} contentContainerStyle={{ paddingHorizontal: 20 }}>
-                    <Card style={[styles.modalCard, { backgroundColor: surface }]}>
-                        <Card.Content>
-                            <View style={styles.modalHeader}>
-                                <MaterialCommunityIcons name="key" size={42} color={primary} />
-                                <Text variant="headlineSmall" style={{ fontWeight: "700" }}>
-                                    Enter Hidden Code
-                                </Text>
-                                <Text style={{ opacity: 0.7, marginTop: 4, textAlign: "center" }}>
-                                    This QR requires a secret code
-                                </Text>
-                            </View>
-
-                            <TextInput
-                                label="Hidden Code"
-                                mode="outlined"
-                                value={hiddenCode}
-                                onChangeText={setHiddenCode}
-                                left={<TextInput.Icon icon="key" />}
-                                style={{ marginBottom: 16 }}
-                            />
-
-                            <View style={styles.modalActions}>
-                                <Button mode="outlined" onPress={resetScanState} style={{ flex: 1 }}>
-                                    Cancel
-                                </Button>
-                                <Button
-                                    mode="contained"
-                                    loading={processing}
-                                    disabled={processing}
-                                    onPress={() => processQRScan(scannedQRData!, hiddenCode)}
-                                    style={{ flex: 1 }}
-                                >
-                                    Submit
-                                </Button>
-                            </View>
-                        </Card.Content>
-                    </Card>
-                </Modal>
-            </Portal>
+            {/* Payment Modal */}
+            <PaymentModal
+                visible={showPaymentModal}
+                seller={paymentSeller}
+                amount={paymentAmount}
+                processing={processingPayment}
+                onAmountChange={setPaymentAmount}
+                onPayment={handlePayment}
+                onCancel={resetScanState}
+                theme={{ surface, primary, outline }}
+                isValidAmount={isValidPaymentAmount()}
+            />
         </View>
     );
 }
 
+
+
+// Styles
 const styles = StyleSheet.create({
-    center: { flex: 1, justifyContent: "center", alignItems: "center" },
+    container: { flex: 1, backgroundColor: "black" }
 
-    permissionWrapper: { flex: 1, justifyContent: "center", alignItems: "center", padding: 32 },
-    permissionTitle: { marginTop: 18, marginBottom: 6, fontWeight: "700", textAlign: "center" },
-    permissionText: { textAlign: "center", opacity: 0.9, marginBottom: 20 },
-    permissionBtn: { borderRadius: 12 },
-
-    overlay: { ...StyleSheet.absoluteFillObject, justifyContent: "space-between" },
-
-    topOverlay: { paddingTop: 60, paddingHorizontal: 24, paddingBottom: 40 },
-    topTitle: { color: "#FFF", fontWeight: "700", marginBottom: 8, fontSize: 22 },
-    topSubtitle: { color: "#EEE" },
-
-    frame: { width: 260, height: 260, alignSelf: "center" },
-
-    corner: { position: "absolute", width: 48, height: 48, borderColor: "#FFF" },
-    cornerTL: { top: 0, left: 0, borderTopWidth: 4, borderLeftWidth: 4 },
-    cornerTR: { top: 0, right: 0, borderTopWidth: 4, borderRightWidth: 4 },
-    cornerBL: { bottom: 0, left: 0, borderBottomWidth: 4, borderLeftWidth: 4 },
-    cornerBR: { bottom: 0, right: 0, borderBottomWidth: 4, borderRightWidth: 4 },
-
-    bottomOverlay: { paddingTop: 30, paddingBottom: 100, alignItems: "center" },
-    bottomText: { marginTop: 10, color: "#FFF", opacity: 0.9 },
-
-    modalCard: { borderRadius: 20 },
-    modalHeader: { alignItems: "center", marginBottom: 20 },
-    modalActions: { flexDirection: "row", gap: 10 },
 });
