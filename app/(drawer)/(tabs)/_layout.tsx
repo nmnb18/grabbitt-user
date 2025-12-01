@@ -46,7 +46,6 @@ export default function UserTabsLayout() {
                   style={{
                     fontFamily: "JostMedium",
                     fontSize: 36,
-                    lineHeight: 38,
                   }}
                 >
                   grabbitt

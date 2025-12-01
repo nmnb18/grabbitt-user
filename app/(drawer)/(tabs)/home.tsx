@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { Alert } from "react-native";
 import * as Location from "expo-location";
+import { useFocusEffect } from "@react-navigation/native";
 
 import { fetchNearbySellers } from "@/services/userService";
 import withSkeletonTransition from "@/components/wrappers/withSkeletonTransition";
@@ -8,27 +9,23 @@ import UserHome from "@/components/home/user-home";
 import HomeSkeleton from "@/components/skeletons/home";
 import { SimplifiedSeller } from "@/types/seller";
 
-// Create enhanced component with skeleton
 const UserHomeWithSkeleton = withSkeletonTransition(HomeSkeleton)(UserHome);
 
 export default function UserHomeContainer() {
-  // State management
   const [sellers, setSellers] = useState<SimplifiedSeller[]>([]);
   const [loading, setLoading] = useState(true);
   const [refreshing, setRefreshing] = useState(false);
   const [hasData, setHasData] = useState(false);
 
-  // Data fetching logic
-  const loadNearbySellers = useCallback(async (isRefreshing = false) => {
+  const loadNearbySellers = useCallback(async (isRefreshing = false, silent = false) => {
     try {
-      if (!isRefreshing) {
+      if (!isRefreshing && !silent) {
         setLoading(true);
       }
 
       let lat: number | undefined;
       let lng: number | undefined;
 
-      // Get user location
       const { status } = await Location.getForegroundPermissionsAsync();
       if (status === "granted") {
         const loc = await Location.getCurrentPositionAsync({
@@ -38,11 +35,12 @@ export default function UserHomeContainer() {
         lng = loc.coords.longitude;
       }
 
-      // Fetch sellers from backend
       const data = await fetchNearbySellers(lat, lng);
 
       if (!data.success) {
-        Alert.alert("Error", data.error || "Could not load sellers");
+        if (!silent) {
+          Alert.alert("Error", data.error || "Could not load sellers");
+        }
         return;
       }
 
@@ -51,7 +49,9 @@ export default function UserHomeContainer() {
 
     } catch (err: any) {
       console.log(err);
-      Alert.alert("Error", err?.message || "Failed to load sellers");
+      if (!silent) {
+        Alert.alert("Error", err?.message || "Failed to load sellers");
+      }
     } finally {
       setLoading(false);
       setRefreshing(false);
@@ -63,7 +63,30 @@ export default function UserHomeContainer() {
     loadNearbySellers();
   }, [loadNearbySellers]);
 
-  // Handle pull-to-refresh
+  // Refresh when screen comes into focus (user returns from scan)
+  useFocusEffect(
+    useCallback(() => {
+      const refreshData = async () => {
+        await loadNearbySellers(false, true); // Silent refresh
+      };
+
+      // Small delay to ensure backend has processed the scan
+      const timer = setTimeout(refreshData, 1500);
+      return () => clearTimeout(timer);
+    }, [loadNearbySellers])
+  );
+
+  // // Periodic refresh every 30 seconds when app is active
+  // useEffect(() => {
+  //   const interval = setInterval(() => {
+  //     if (!loading && !refreshing) {
+  //       loadNearbySellers(false, true); // Silent background refresh
+  //     }
+  //   }, 30000);
+
+  //   return () => clearInterval(interval);
+  // }, [loading, refreshing, loadNearbySellers]);
+
   const handleRefresh = () => {
     setRefreshing(true);
     loadNearbySellers(true);
@@ -71,15 +94,10 @@ export default function UserHomeContainer() {
 
   return (
     <UserHomeWithSkeleton
-      // Data
       sellers={sellers}
-
-      // Loading states
       loading={loading}
       hasData={hasData}
       refreshing={refreshing}
-
-      // Actions
       onRefresh={handleRefresh}
     />
   );

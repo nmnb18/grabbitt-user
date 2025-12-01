@@ -21,7 +21,7 @@ export default function Index() {
     if (!loading) {
       // Add a small delay to show splash before navigating
       const timer = setTimeout(() => {
-        if (user && user?.user?.role === 'seller') {
+        if (user && user?.user?.role === 'user') {
           router.replace('/(drawer)');
         } else {
           router.replace('/auth/login');

@@ -16,6 +16,7 @@ export const Colors = {
     // Brand colors
     primary: grabbittPrimary,
     secondary: grabbittSecondary,
+    teritary: '#ef3555',
     accent: grabbittAccent,
 
     // UI colors
@@ -49,6 +50,7 @@ export const Colors = {
     primary: grabbittPrimary,
     secondary: grabbittSecondary,
     accent: grabbittAccent,
+    teritary: '#ef3555',
 
     // UI colors (adjusted for dark mode)
     text: "#FFFFFF",
@@ -107,6 +109,7 @@ export const LightTheme = {
     primaryContainer: Colors.light.primary,
     secondary: Colors.light.secondary,
     secondaryContainer: Colors.light.secondary,
+    tertiary: Colors.light.teritary,
     accent: Colors.light.accent,
     background: Colors.light.background,
     surface: Colors.light.surface,
@@ -173,6 +176,7 @@ export const DarkTheme = {
     primaryContainer: Colors.dark.primary,
     secondary: Colors.dark.secondary,
     secondaryContainer: Colors.dark.secondary,
+    tertiary: Colors.dark.teritary,
     accent: Colors.dark.accent,
     background: Colors.dark.background,
     surface: Colors.dark.surface,

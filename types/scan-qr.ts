@@ -12,3 +12,14 @@ export interface UPIQRData {
     am?: string;
     [key: string]: string | undefined;
 }
+
+// Add to your types/scan-qr.ts
+export interface ScanResult {
+    sellerName: string;
+    pointsEarned: number;
+    totalPoints: number;
+    message: string;
+    amount?: number; // For payment scans
+    timestamp: string;
+    type: 'grabbitt_scan' | 'payment';
+}

@@ -160,7 +160,7 @@ export default function UserHome({
                                                 mode="outlined"
                                                 style={[
                                                     styles.storeCategory,
-                                                    { borderColor: theme.colors.primary }
+                                                    { borderColor: theme.colors.tertiary }
                                                 ]}
                                                 textStyle={{
                                                     color: theme.colors.text,
@@ -181,12 +181,12 @@ export default function UserHome({
                                         )}
                                         <View style={styles.rewardRow}>
                                             <View style={styles.rewardData}>
-                                                <MaterialCommunityIcons name="star-circle" size={20} color={theme.colors.primary} />
+                                                <MaterialCommunityIcons name="star-circle" size={20} color={theme.colors.tertiary} />
                                                 <Text style={styles.rewardText}>{seller.points_per_visit} pts/visit</Text>
                                             </View>
                                             <View style={styles.rewardData}>
-                                                <MaterialCommunityIcons name="gift" size={20} color={theme.colors.primary} />
-                                                <Text style={styles.rewardText}>{seller.reward_points} pts reward</Text>
+                                                <MaterialCommunityIcons name="gift" size={20} color={theme.colors.tertiary} />
+                                                <Text style={styles.rewardText}>{seller.reward_points} pts rewarded</Text>
                                             </View>
                                         </View>
                                     </View>
@@ -202,8 +202,8 @@ export default function UserHome({
             {/* FAB */}
             <FAB
                 icon="qrcode-scan"
-                label="Scan QR"
-                style={[styles.fab, { backgroundColor: theme.colors.primary }]}
+                label=""
+                style={[styles.fab, { backgroundColor: theme.colors.tertiary }]}
                 onPress={() => router.push("/(drawer)/(tabs)/scan-qr")}
                 color={theme.colors.onSurface}
             />

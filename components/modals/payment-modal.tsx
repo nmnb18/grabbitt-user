@@ -66,7 +66,7 @@ export const PaymentModal = ({
                             disabled={processing || !isValidAmount}
                             onPress={onPayment}
                         >
-                            {`Pay ₹${amount || '0'}`}
+                            Pay
                         </Button>
                     </View>
                 </Card.Content>
@@ -79,6 +79,6 @@ const styles = StyleSheet.create({
     paymentModal: { paddingHorizontal: 20 },
     modalCard: { borderRadius: 20 },
     modalHeader: { alignItems: "center", marginBottom: 20 },
-    modalActions: { flexDirection: "row", gap: 10 },
+    modalActions: { flexDirection: "row", gap: 10, justifyContent: 'space-between' },
     rewardInfo: { fontSize: 12, textAlign: 'center', marginBottom: 16, fontWeight: '500' },
 })
