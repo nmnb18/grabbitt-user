@@ -232,10 +232,12 @@ export default function UserScanQR() {
             },
             theme: { color: primary },
         };
+        setProcessingPayment(true);
 
         RazorpayCheckout.open(options)
             .then(async (razorpayData) => {
                 await verifyPayment(order_id, razorpayData, amount);
+
             })
             .catch((error: any) => {
                 console.error('Razorpay Error:', error);
@@ -245,14 +247,26 @@ export default function UserScanQR() {
     };
 
     const verifyPayment = async (orderId: string, razorpayData: any, amount: number) => {
-        const verifyResponse = await api.post('/verifyPaymentForUser', {
+        setProcessingPayment(true);
+        const payload: any = {
             razorpay_order_id: orderId,
             razorpay_payment_id: razorpayData.razorpay_payment_id,
             razorpay_signature: razorpayData.razorpay_signature,
             sellerId: paymentSeller!.id,
             amount: amount
-        });
-
+        }
+        const { status } = await Location.getForegroundPermissionsAsync();
+        if (status === "granted") {
+            try {
+                const location = await Location.getCurrentPositionAsync({});
+                payload.user_lat = location.coords.latitude;
+                payload.user_lng = location.coords.longitude;
+            } catch (locationError) {
+                console.log('Location not available, proceeding without location data');
+            }
+        }
+        const verifyResponse = await api.post('/verifyPaymentForUser', payload);
+        setProcessingPayment(false);
         if (verifyResponse.data.success) {
             const pointsEarned = verifyResponse.data.points_earned || 0;
 
@@ -274,7 +288,7 @@ export default function UserScanQR() {
             });
 
         } else {
-            throw new Error('Payment verification failed');
+            throw new Error('Payment verification failed. Amount deducted(any) will refund back to you in 24-48hrs.');
         }
     };
 
