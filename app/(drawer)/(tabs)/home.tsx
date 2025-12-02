@@ -17,46 +17,50 @@ export default function UserHomeContainer() {
   const [refreshing, setRefreshing] = useState(false);
   const [hasData, setHasData] = useState(false);
 
-  const loadNearbySellers = useCallback(async (isRefreshing = false, silent = false) => {
-    try {
-      if (!isRefreshing && !silent) {
-        setLoading(true);
-      }
-
-      let lat: number | undefined;
-      let lng: number | undefined;
-
-      const { status } = await Location.getForegroundPermissionsAsync();
-      if (status === "granted") {
-        const loc = await Location.getCurrentPositionAsync({
-          accuracy: Location.Accuracy.Balanced,
-        });
-        lat = loc.coords.latitude;
-        lng = loc.coords.longitude;
-      }
-
-      const data = await fetchNearbySellers(lat, lng);
-
-      if (!data.success) {
-        if (!silent) {
-          Alert.alert("Error", data.error || "Could not load sellers");
+  const loadNearbySellers = useCallback(
+    async (isRefreshing = false, silent = false) => {
+      try {
+        if (!isRefreshing && !silent) {
+          setLoading(true);
         }
-        return;
-      }
 
-      setSellers(data.sellers);
-      setHasData(data.sellers.length > 0);
+        let lat: number | undefined;
+        let lng: number | undefined;
 
-    } catch (err: any) {
-      console.log(err);
-      if (!silent) {
-        Alert.alert("Error", err?.message || "Failed to load sellers");
+        const { status } = await Location.getForegroundPermissionsAsync();
+        if (status === "granted") {
+          const loc = await Location.getCurrentPositionAsync({
+            accuracy: Location.Accuracy.Balanced,
+          });
+          //lat = loc.coords.latitude;
+          //lng = loc.coords.longitude;
+          lat = 37.785834;
+          lng = -122.406417;
+        }
+
+        const data = await fetchNearbySellers(lat, lng);
+        console.log("Fetched sellers:", data);
+        if (!data.success) {
+          if (!silent) {
+            Alert.alert("Error", data.error || "Could not load sellers");
+          }
+          return;
+        }
+
+        setSellers(data.sellers);
+        setHasData(true);
+      } catch (err: any) {
+        console.log(err);
+        if (!silent) {
+          Alert.alert("Error", err?.message || "Failed to load sellers");
+        }
+      } finally {
+        setLoading(false);
+        setRefreshing(false);
       }
-    } finally {
-      setLoading(false);
-      setRefreshing(false);
-    }
-  }, []);
+    },
+    []
+  );
 
   // Initial load
   useEffect(() => {
