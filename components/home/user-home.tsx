@@ -115,7 +115,7 @@ export default function UserHome({
                             style={[
                                 styles.categoryChip,
                                 { backgroundColor: theme.colors.outline },
-                                category === c.value && { backgroundColor: theme.colors.primary },
+                                category === c.value && { backgroundColor: theme.colors.tertiary },
                             ]}
                             textStyle={styles.categoryChipText}
                         >
@@ -126,8 +126,8 @@ export default function UserHome({
 
                 {/* Stores List */}
                 <View style={styles.storeSection}>
-                    <GradientText style={styles.sectionTitle}>Nearby Stores</GradientText>
-                    <Text style={styles.sectionSubtitle}>
+                    <Text style={styles.sectionTitle}>Nearby Stores</Text>
+                    <Text style={[styles.sectionSubtitle, { color: theme.colors.accent }]}>
                         {filteredSellers.length} stores available
                     </Text>
 
@@ -145,6 +145,14 @@ export default function UserHome({
                             <Card
                                 key={seller.id}
                                 style={[styles.storeCard, { backgroundColor: theme.colors.surface }]}
+                                onPress={() => {
+                                    router.push({
+                                        pathname: '/(drawer)/store-details',
+                                        params: {
+                                            storeId: seller.id
+                                        }
+                                    })
+                                }}
                             >
                                 <Card.Content style={styles.storeCardInner}>
                                     <Surface style={styles.storeIcon}>
@@ -153,44 +161,46 @@ export default function UserHome({
 
                                     <View style={styles.storeInfo}>
                                         <Text style={styles.storeName}>{seller.shop_name}</Text>
-
-                                        {seller.category && (
-                                            <Chip
-                                                compact
-                                                mode="outlined"
-                                                style={[
-                                                    styles.storeCategory,
-                                                    { borderColor: theme.colors.tertiary }
-                                                ]}
-                                                textStyle={{
-                                                    color: theme.colors.text,
-                                                    fontSize: 12,
-                                                    fontWeight: "600",
-                                                    marginVertical: 0,
-                                                    marginTop: 1,
-                                                }}
-                                            >
-                                                {seller.category.toUpperCase()}
-                                            </Chip>
-                                        )}
-
                                         {seller.description && (
                                             <Text numberOfLines={2} style={[styles.storeDesc, { color: theme.colors.accent }]}>
                                                 {seller.description}
                                             </Text>
                                         )}
-                                        <View style={styles.rewardRow}>
-                                            <View style={styles.rewardData}>
-                                                <MaterialCommunityIcons name="star-circle" size={20} color={theme.colors.tertiary} />
-                                                <Text style={styles.rewardText}>{seller.points_per_visit} pts/visit</Text>
-                                            </View>
-                                            <View style={styles.rewardData}>
-                                                <MaterialCommunityIcons name="gift" size={20} color={theme.colors.tertiary} />
-                                                <Text style={styles.rewardText}>{seller.reward_points} pts rewarded</Text>
-                                            </View>
-                                        </View>
+
+
+
                                     </View>
+                                    {seller.category && (
+                                        <Chip
+                                            compact
+                                            mode="outlined"
+                                            style={[
+                                                styles.storeCategory,
+                                                { borderColor: theme.colors.tertiary }
+                                            ]}
+                                            textStyle={{
+                                                color: theme.colors.text,
+                                                fontSize: 12,
+                                                fontWeight: "600",
+                                                marginVertical: 0,
+                                                marginTop: 1,
+                                            }}
+                                        >
+                                            {seller.category.toUpperCase()}
+                                        </Chip>
+                                    )}
                                 </Card.Content>
+                                <View style={styles.rewardRow}>
+                                    <View style={styles.rewardData}>
+                                        <MaterialCommunityIcons name="star-circle" size={20} color={theme.colors.tertiary} />
+                                        {seller.reward_description?.type !== 'slab' && <Text style={styles.rewardText}>{seller.reward_description?.text}</Text>}
+                                        {seller.reward_description?.type === 'slab' && <View style={styles.slabRewards}>{seller.reward_description?.text?.map((t: string, index: number) => <Text key={index} style={styles.rewardText}>{t}</Text>)}</View>}
+                                    </View>
+                                    <View style={styles.rewardData}>
+                                        <MaterialCommunityIcons name="gift" size={20} color={theme.colors.tertiary} />
+                                        <Text style={styles.rewardText}>{seller.reward_points} pts rewarded</Text>
+                                    </View>
+                                </View>
                             </Card>
                         ))
                     )}
@@ -222,7 +232,7 @@ const styles = StyleSheet.create({
     categoryChip: { borderRadius: 20 },
     categoryChipText: { fontWeight: "500" },
     storeSection: { marginBottom: 20 },
-    sectionTitle: { fontSize: 20, fontWeight: "700", marginBottom: 4 },
+    sectionTitle: { fontSize: 20, fontWeight: "700", marginBottom: 4, textAlign: 'center' },
     sectionSubtitle: { fontSize: 14, color: "#6B7280", marginBottom: 16 },
     emptyCard: { borderRadius: 16, padding: 20 },
     emptyTitle: { marginTop: 12, fontSize: 16, fontWeight: "600" },
@@ -231,10 +241,11 @@ const styles = StyleSheet.create({
     storeIcon: { width: 56, height: 56, borderRadius: 28, justifyContent: "center", alignItems: "center" },
     storeInfo: { flex: 1 },
     storeName: { fontSize: 16, fontWeight: "600", marginBottom: 4 },
-    storeCategory: { paddingHorizontal: 0, marginTop: 6, marginBottom: 6, borderRadius: 16, alignSelf: 'flex-start' },
-    storeDesc: { fontSize: 12, marginBottom: 10 },
-    rewardRow: { flexDirection: "row", alignItems: "center", gap: 6, marginBottom: 6, justifyContent: 'space-between' },
+    storeCategory: { borderRadius: 16, alignSelf: 'flex-start' },
+    storeDesc: { fontSize: 12, marginBottom: 4 },
+    rewardRow: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, paddingBottom: 12, justifyContent: 'space-between' },
     rewardData: { flexDirection: "row", alignItems: "center", gap: 6 },
-    rewardText: { fontSize: 12, fontWeight: "500" },
+    rewardText: { fontSize: 14, fontWeight: "500" },
     fab: { position: "absolute", bottom: 50, right: 16 },
+    slabRewards: { gap: 4 }
 });

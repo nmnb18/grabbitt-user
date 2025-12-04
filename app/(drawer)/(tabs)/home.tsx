@@ -39,7 +39,6 @@ export default function UserHomeContainer() {
         }
 
         const data = await fetchNearbySellers(lat, lng);
-        console.log("Fetched sellers:", data);
         if (!data.success) {
           if (!silent) {
             Alert.alert("Error", data.error || "Could not load sellers");

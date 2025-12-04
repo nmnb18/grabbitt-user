@@ -4,7 +4,7 @@ import { useFocusEffect } from "@react-navigation/native";
 import * as Location from "expo-location";
 
 import { CameraView, useCameraPermissions } from "expo-camera";
-import RazorpayCheckout from "react-native-razorpay";
+//import RazorpayCheckout from "react-native-razorpay";
 
 import { useAuthStore } from "@/store/authStore";
 import { useTheme } from "@/hooks/use-theme-color";
@@ -431,18 +431,18 @@ export default function UserScanQR() {
     };
     setProcessingScan(true);
 
-    RazorpayCheckout.open(options)
-      .then(async (razorpayData) => {
-        await verifyPayment(order_id, razorpayData, amount);
-      })
-      .catch((error: any) => {
-        console.error("Razorpay Error:", error);
-        showAlert(
-          "Payment Failed",
-          error.description?.description || "Payment was not completed"
-        );
-        resetScanState();
-      });
+    // RazorpayCheckout.open(options)
+    //   .then(async (razorpayData) => {
+    //     await verifyPayment(order_id, razorpayData, amount);
+    //   })
+    //   .catch((error: any) => {
+    //     console.error("Razorpay Error:", error);
+    //     showAlert(
+    //       "Payment Failed",
+    //       error.description?.description || "Payment was not completed"
+    //     );
+    //     resetScanState();
+    //   });
   };
 
   const verifyPayment = async (

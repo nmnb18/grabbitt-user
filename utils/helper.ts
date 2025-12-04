@@ -38,3 +38,23 @@ export const parseUPIQR = (qrData: string): any => {
 
     return params;
 };
+
+export const formatTimestamp = (timestamp: any) => {
+    try {
+        // Handle Firebase timestamp format: "November 26, 2025 at 11:08:39 AM UTC"
+        // Remove " at " and " UTC" and parse
+        const date = timestamp._seconds
+            ? new Date(timestamp._seconds * 1000)
+            : new Date(timestamp);
+
+        return date.toLocaleDateString('en-IN', {
+            day: '2-digit',
+            month: 'short',
+            year: 'numeric',
+        });
+    } catch (e) {
+        console.warn("Failed to parse timestamp:", timestamp, e);
+    }
+};
+
+

@@ -10,30 +10,59 @@ export type QRCodeType = 'dynamic' | 'static' | 'static_hidden';
 // Reward Types
 export type RewardType = 'default' | 'percentage' | 'flat' | 'slab';
 
-// Location Interface
-export interface SellerLocation {
-    street: string;
-    city: string;
-    state: string;
-    pincode: string;
-    country: string;
-    latitude?: number;
-    longitude?: number;
-    enableLocation: boolean;
-    locationRadius: number;
+// Reward Configuration
+export interface SellerRewards {
+    default_points_value: number;
+    offers?: {
+        reward_points: number;
+        reward_name: string;
+        reward_description: string;
+    }[];
+    percentage_value?: string;
+
+    reward_type?: string;
+    flat_points?: string;
+    reward_name?: string;
+    reward_description?: string
+    slab_rules?: {
+        min: number;
+        max: number;
+        points: number;
+    }[];
+    upi_ids?: string[]
+}
+export interface SellerVerification {
+    gst_number?: string | null;
+    pan_number?: string | null;
+    business_registration_number?: string | null;
+    status: "pending" | "approved" | "rejected";
+    is_verified: boolean;
+}
+export interface SellerAddress {
+    street?: string;
+    city?: string;
+    state?: string;
+    pincode?: string;
+    country?: string;
 }
 
-// Reward Configuration
-export interface RewardConfig {
-    rewardType: RewardType;
-    defaultPoints?: number;
-    percentageValue?: number;
-    flatPoints?: number;
-    slabRules?: Array<{
-        min: number;
-        max: number | null;
-        points: number;
-    }>;
+export interface SellerLocation {
+    address: SellerAddress;
+    lat?: number | null;
+    lng?: number | null;
+    radius_meters?: number | null;
+}
+
+export interface SellerStats {
+    total_scans: number;
+    total_points_distributed: number;
+    active_customers: number;
+    monthly_scans: number;
+}
+export interface SellerMedia {
+    logo_url?: string | null;
+    banner_url?: string | null;
+    gallery_urls: string[];
 }
 
 // Subscription Information
@@ -59,50 +88,7 @@ export interface UPIInfo {
 }
 
 // Main Seller Interface
-export interface Seller {
-    // Basic Info
-    id: string;
-    user_id: string;
 
-    // Business Info
-    shop_name: string;
-    business_type: BusinessType;
-    category: string;
-    description: string;
-    established_year?: number;
-
-    // Contact Info
-    email: string;
-    phone: string;
-
-    // Location
-    location: SellerLocation;
-
-    // Verification (Optional)
-    gst_number?: string;
-    pan_number?: string;
-    business_registration_number?: string;
-
-    // Subscription
-    subscription: SubscriptionInfo;
-
-    // Rewards & Points
-    rewards: RewardConfig;
-    points_per_visit: number;
-    reward_points: number;
-    reward_description?: string;
-
-    // UPI
-    upi: UPIInfo;
-
-    // QR Code Preferences
-    qr_code_type: QRCodeType;
-
-    // Timestamps
-    created_at: any; // Firestore Timestamp
-    updated_at: any; // Firestore Timestamp
-    last_active?: any; // Firestore Timestamp
-}
 
 // Simplified Seller for listing (to avoid sending sensitive data)
 export interface SimplifiedSeller {
@@ -113,7 +99,10 @@ export interface SimplifiedSeller {
     description: string;
     points_per_visit: number;
     reward_points: number;
-    reward_description?: string;
+    reward_description?: {
+        text: any,
+        type: string
+    };
     location: {
         city: string;
         state: string;
@@ -129,9 +118,34 @@ export interface SellersResponse {
     sellers: SimplifiedSeller[];
     error?: string;
 }
+export interface SellerBusiness {
+    shop_name: string;
+    business_type: string;
+    category: string;
+    description?: string;
+}
+// types/store.ts
+export interface StoreDetails {
+    seller_id: string;
+    account: {
+        email: string;
+        name: string;
+        phone: string;
+        established_year: string;
+    };
+    business: SellerBusiness;
+    location: SellerLocation;
+    media: SellerMedia;
+    rewards: SellerRewards;
+    stats: SellerStats;
+    created_at: string;
+    last_active: string;
+}
 
-export interface SellerResponse {
+export interface ApiResponse {
     success: boolean;
-    seller: Seller;
+    user: {
+        seller_profile: StoreDetails
+    };
     error?: string;
 }
