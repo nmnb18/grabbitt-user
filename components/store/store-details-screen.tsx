@@ -52,7 +52,7 @@ export default function StoreDetailsScreen({
             onRedeem(store);
         } else {
             router.push({
-                pathname: "/(drawer)/redeem",
+                pathname: "/(drawer)/redeem/redeem-home",
                 params: { store: JSON.stringify(store) },
             });
         }

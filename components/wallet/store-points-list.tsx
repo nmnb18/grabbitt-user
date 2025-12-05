@@ -7,6 +7,7 @@ import { useTheme } from "@/hooks/use-theme-color";
 import { StoreBalance } from "@/types/wallet";
 import { Button } from "../ui/paper-button";
 import { useRouter } from "expo-router";
+import { GradientText } from "../ui/gradient-text";
 
 interface StorePointsListProps {
     balances: StoreBalance[];
@@ -19,7 +20,7 @@ export function StorePointsList({ balances }: StorePointsListProps) {
 
     const handleRedeemPress = (store: StoreBalance) => {
         router.replace({
-            pathname: "/(drawer)/redeem",
+            pathname: "/(drawer)/redeem/redeem-home",
             params: {
                 store: JSON.stringify(store), // Stringify the entire store object
             },
@@ -35,6 +36,7 @@ export function StorePointsList({ balances }: StorePointsListProps) {
                         key={store.seller_id}
                         style={[styles.storeCard, { backgroundColor: theme.colors.surface }]}
                         elevation={2}
+                        onPress={() => handleRedeemPress(store)}
                     >
                         <Card.Content>
                             {/* Store Header */}
@@ -71,15 +73,8 @@ export function StorePointsList({ balances }: StorePointsListProps) {
                             <Divider style={[styles.divider, { backgroundColor: theme.colors.outline }]} />
 
                             {/* Redeem Button */}
-                            {store.can_redeem && (
-                                <Button
-                                    variant="contained"
-                                    icon="gift"
-                                    onPress={() => handleRedeemPress(store)}
-                                >
-                                    Redeem Reward
-                                </Button>
-                            )}
+                            <GradientText >Tap to Redeem</GradientText>
+
                         </Card.Content>
                     </Card>
                 );

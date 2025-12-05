@@ -1,6 +1,13 @@
 import React, { useEffect, useState } from "react";
-import { View, Alert, StyleSheet } from "react-native";
-import { Surface, TextInput, Button, HelperText, Checkbox, Text } from "react-native-paper";
+import { View, Alert, StyleSheet, KeyboardTypeOptions } from "react-native";
+import {
+    Surface,
+    TextInput,
+    Button,
+    HelperText,
+    Checkbox,
+    Text,
+} from "react-native-paper";
 import { GradientText } from "@/components/ui/gradient-text";
 import AuthScreenWrapper from "@/components/wrappers/authScreenWrapper";
 import { useRouter } from "expo-router";
@@ -9,7 +16,26 @@ import * as Location from "expo-location";
 import { AppStyles } from "@/utils/theme";
 import { useTheme, useThemeColor } from "@/hooks/use-theme-color";
 
-import { useAuthStore } from '../../store/authStore';
+import { validators, validateField, validateAll } from "@/utils/validation";
+import { useAuthStore } from "../../store/authStore";
+
+// ----------------------------------------------
+// TYPES
+// ----------------------------------------------
+type FieldKeys =
+    | "name"
+    | "phone"
+    | "email"
+    | "password"
+    | "cPassword"
+    | "street"
+    | "city"
+    | "state"
+    | "pincode";
+
+type Fields = Record<FieldKeys, string>;
+type Errors = Record<FieldKeys | "terms", string>;
+
 export default function UserRegister() {
     const router = useRouter();
     const { register } = useAuthStore();
@@ -17,110 +43,122 @@ export default function UserRegister() {
     const theme = useTheme();
     const outlineColor = useThemeColor({}, "outline");
 
-    // Form fields
-    const [name, setName] = useState("");
-    const [phone, setPhone] = useState("");
-    const [email, setEmail] = useState("");
-    const [password, setPassword] = useState("");
-    const [cPassword, setCPassword] = useState("");
+    // ----------------------------------------------
+    // FORM STATE
+    // ----------------------------------------------
+    const [fields, setFields] = useState<Fields>({
+        name: "",
+        phone: "",
+        email: "",
+        password: "",
+        cPassword: "",
+        street: "",
+        city: "",
+        state: "",
+        pincode: "",
+    });
 
-    const [street, setStreet] = useState("");
-    const [city, setCity] = useState("");
-    const [state, setState] = useState("");
-    const [pincode, setPincode] = useState("");
+    const [errors, setErrors] = useState<Errors>({
+        name: "",
+        phone: "",
+        email: "",
+        password: "",
+        cPassword: "",
+        street: "",
+        city: "",
+        state: "",
+        pincode: "",
+        terms: "",
+    });
 
     const [acceptTerms, setAcceptTerms] = useState(false);
-
     const [loading, setLoading] = useState(false);
     const [coordinates, setCoordinates] = useState<{ lat: number; lng: number } | null>(null);
 
-    //--------------------------------------------------------------------
-    // LOCATION ACCESS (MANDATORY)
-    //--------------------------------------------------------------------
-    const captureLocation = async () => {
-        try {
-            console.log('pos')
-            const { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== "granted") {
-                Alert.alert(
-                    "Location Required",
-                    "Location access is mandatory for app features.\n\nPlease enable location to continue.",
-                    [
-                        {
-                            text: "Open Settings",
-                            onPress: () => Location.requestForegroundPermissionsAsync()
-                        }
-                    ]
-                );
-                return;
-            }
+    // ----------------------------------------------
+    // VALIDATION SCHEMA (fully typed)
+    // ----------------------------------------------
+    const schema: Record<FieldKeys, ((v: string) => string)[]> = {
+        name: [(v) => validators.required(v, "Full Name")],
+        phone: [validators.phone],
+        email: [validators.email],
+        password: [validators.password],
+        cPassword: [
+            (v) => validators.required(v, "Confirm Password"),
+            (v) => validators.matchPassword(v, fields.password),
+        ],
+        street: [(v) => validators.required(v, "Street")],
+        city: [(v) => validators.required(v, "City")],
+        state: [(v) => validators.required(v, "State")],
+        pincode: [validators.pincode],
+    };
 
-            const pos = await Location.getCurrentPositionAsync({});
-            const lat = pos.coords.latitude;
-            const lng = pos.coords.longitude;
-            setCoordinates({
-                lat,
-                lng,
-            });
-            const geo = await Location.reverseGeocodeAsync({ latitude: lat, longitude: lng });
-            if (geo && geo.length > 0) {
-                const g = geo[0];
+    // ----------------------------------------------
+    // CHANGE HANDLER (type-safe indexing)
+    // ----------------------------------------------
+    const handleChange = (key: FieldKeys, value: string) => {
+        setFields((prev) => ({ ...prev, [key]: value }));
 
-                setStreet(
-                    g.street ||
-                    `${g.name || ""} ${g.streetNumber || ""}`.trim()
-                );
-                setCity(g.city || g.subregion || "");
-                setState(g.region || "");
-                setPincode(g.postalCode || "");
-            } else {
-                Alert.alert("Notice", "Couldn't auto-fill address. Please enter manually.");
-            }
-        } catch (err) {
-            console.log(err);
-            Alert.alert("Location Error", "Unable to fetch your location.");
-            return null;
+        if (errors[key]) {
+            const err = validateField(key, value, schema[key]);
+            setErrors((prev) => ({ ...prev, [key]: err }));
         }
     };
 
-    //--------------------------------------------------------------------
-    // HANDLE REGISTER
-    //--------------------------------------------------------------------
+    // ----------------------------------------------
+    // LOCATION
+    // ----------------------------------------------
+    const captureLocation = async () => {
+        try {
+            const { status } = await Location.requestForegroundPermissionsAsync();
+            if (status !== "granted") return;
+
+            const pos = await Location.getCurrentPositionAsync({});
+            const { latitude, longitude } = pos.coords;
+
+            setCoordinates({ lat: latitude, lng: longitude });
+
+            const geo = await Location.reverseGeocodeAsync({ latitude, longitude });
+            if (geo.length > 0) {
+                const g = geo[0];
+                handleChange("street", g.street || g.name || "");
+                handleChange("city", g.city || g.subregion || "");
+                handleChange("state", g.region || "");
+                handleChange("pincode", g.postalCode || "");
+            }
+        } catch {
+            Alert.alert("Error", "Unable to fetch location.");
+        }
+    };
+
+    useEffect(() => {
+        captureLocation();
+    }, []);
+
+    // ----------------------------------------------
+    // REGISTER SUBMISSION
+    // ----------------------------------------------
     const handleRegister = async () => {
-        if (!name || !email || !phone || !password || !cPassword) {
-            Alert.alert("Error", "Please fill all fields.");
-            return;
-        }
-        if (password !== cPassword) {
-            Alert.alert("Error", "Passwords do not match.");
-            return;
-        }
-        if (!street || !city || !state || !pincode) {
-            Alert.alert("Error", "Complete address is required.");
+        const { isValid, errors: newErrors } = validateAll(fields, schema);
+
+        if (!acceptTerms) newErrors.terms = "You must accept the terms";
+
+        if (!isValid || newErrors.terms) {
+            setErrors((prev) => ({ ...prev, ...newErrors }));
             return;
         }
 
         setLoading(true);
-        try {
 
-            //-------------------------------------------------------------
-            // 1️⃣ Register over backend (create Firebase user + Firestore)
-            //-------------------------------------------------------------
+        try {
             await register({
-                name,
-                email,
-                phone,
-                password,
-                street,
-                city,
-                state,
-                pincode,
+                ...fields,
                 lat: coordinates?.lat,
                 lng: coordinates?.lng,
             });
-            Alert.alert('Registration Success', 'Please login with resgitered email id and password to continue.');
-            router.push('/auth/login');
 
+            Alert.alert("Success", "Please login to continue.");
+            router.push("/auth/login");
         } catch (err: any) {
             Alert.alert("Registration Error", err.message);
         } finally {
@@ -128,15 +166,9 @@ export default function UserRegister() {
         }
     };
 
-    useEffect(() => {
-        (async () => {
-            await captureLocation();
-        })();
-    }, [])
-
-    //--------------------------------------------------------------------
+    // ----------------------------------------------
     // UI
-    //--------------------------------------------------------------------
+    // ----------------------------------------------
     return (
         <AuthScreenWrapper>
             <Surface
@@ -149,127 +181,95 @@ export default function UserRegister() {
                 <GradientText style={styles.gradientTitle}>Create Account</GradientText>
 
                 <View style={styles.form}>
-                    <TextInput
-                        label="Full Name"
-                        value={name}
-                        onChangeText={setName}
-                        mode="outlined"
-                        left={<TextInput.Icon icon="account" color={theme.colors.onSurface} />}
-                        style={[styles.input, { backgroundColor: theme.colors.surface }]}
-                        outlineColor={theme.colors.outline}
-                        activeOutlineColor={theme.colors.onSurface}
-                        theme={{
-                            ...theme,
-                            colors: {
-                                ...theme.colors,
-                                onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
-                            },
-                        }}
-                    />
+                    {/* Top Fields */}
+                    {[
+                        { key: "name" as FieldKeys, label: "Full Name", icon: "account" as KeyboardTypeOptions },
+                        { key: "phone" as FieldKeys, label: "Phone", icon: "phone", keyboard: "phone-pad" as KeyboardTypeOptions },
+                        { key: "email" as FieldKeys, label: "Email", icon: "email", keyboard: "email-address" as KeyboardTypeOptions },
+                    ].map((f) => (
+                        <View key={f.key}>
+                            <TextInput
+                                label={f.label}
+                                value={fields[f.key]}
+                                keyboardType={f.keyboard}
+                                onBlur={() =>
+                                    setErrors((prev) => ({
+                                        ...prev,
+                                        [f.key]: validateField(f.key, fields[f.key], schema[f.key]),
+                                    }))
+                                }
+                                onChangeText={(t) => handleChange(f.key, t)}
+                                mode="outlined"
 
-                    <TextInput
-                        label="Phone"
-                        value={phone}
-                        onChangeText={setPhone}
-                        mode="outlined"
-                        keyboardType="phone-pad"
-                        left={<TextInput.Icon icon="phone" color={theme.colors.onSurface} />}
-                        style={[styles.input, { backgroundColor: theme.colors.surface }]}
-                        outlineColor={theme.colors.outline}
-                        activeOutlineColor={theme.colors.onSurface}
-                        theme={{
-                            ...theme,
-                            colors: {
-                                ...theme.colors,
-                                onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
-                            },
-                        }}
-                    />
+                                left={<TextInput.Icon icon={f.icon} color={theme.colors.onSurface} />}
+                                outlineColor={theme.colors.outline}
+                                style={[styles.input, { backgroundColor: theme.colors.surface }]}
+                                activeOutlineColor={theme.colors.onSurface}
+                                theme={{
+                                    ...theme,
+                                    colors: {
+                                        ...theme.colors,
+                                        onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
+                                    },
+                                }}
+                            />
+                            <HelperText type="error" visible={!!errors[f.key]}>
+                                {errors[f.key]}
+                            </HelperText>
+                        </View>
+                    ))}
 
-                    <TextInput
-                        label="Email"
-                        value={email}
-                        onChangeText={setEmail}
-                        mode="outlined"
-                        keyboardType="email-address"
-                        left={<TextInput.Icon icon="email" color={theme.colors.onSurface} />}
-                        style={[styles.input, { backgroundColor: theme.colors.surface }]}
-                        outlineColor={theme.colors.outline}
-                        activeOutlineColor={theme.colors.onSurface}
-                        theme={{
-                            ...theme,
-                            colors: {
-                                ...theme.colors,
-                                onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
-                            },
-                        }}
-                    />
+                    {/* Passwords */}
+                    {[
+                        { key: "password" as FieldKeys, label: "Password", icon: "lock" },
+                        { key: "cPassword" as FieldKeys, label: "Confirm Password", icon: "lock-check" },
+                    ].map((f) => (
+                        <View key={f.key}>
+                            <TextInput
+                                label={f.label}
+                                value={fields[f.key]}
+                                secureTextEntry
+                                onBlur={() =>
+                                    setErrors((prev) => ({
+                                        ...prev,
+                                        [f.key]: validateField(f.key, fields[f.key], schema[f.key]),
+                                    }))
+                                }
+                                onChangeText={(t) => handleChange(f.key, t)}
+                                mode="outlined"
+                                left={<TextInput.Icon icon={f.icon} color={theme.colors.onSurface} />}
+                                outlineColor={theme.colors.outline}
+                                style={[styles.input, { backgroundColor: theme.colors.surface }]}
+                                activeOutlineColor={theme.colors.onSurface}
+                                theme={{
+                                    ...theme,
+                                    colors: {
+                                        ...theme.colors,
+                                        onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
+                                    },
+                                }}
+                            />
+                            <HelperText type="error" visible={!!errors[f.key]}>
+                                {errors[f.key]}
+                            </HelperText>
+                        </View>
+                    ))}
 
-                    <TextInput
-                        label="Password"
-                        value={password}
-                        onChangeText={setPassword}
-                        secureTextEntry
-                        mode="outlined"
-                        left={<TextInput.Icon icon="lock" color={theme.colors.onSurface} />}
-                        style={[styles.input, { backgroundColor: theme.colors.surface }]}
-                        outlineColor={theme.colors.outline}
-                        activeOutlineColor={theme.colors.onSurface}
-                        theme={{
-                            ...theme,
-                            colors: {
-                                ...theme.colors,
-                                onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
-                            },
-                        }}
-                    />
-
-                    <TextInput
-                        label="Confirm Password"
-                        value={cPassword}
-                        onChangeText={setCPassword}
-                        secureTextEntry
-                        mode="outlined"
-                        left={<TextInput.Icon icon="lock-check" color={theme.colors.onSurface} />}
-                        style={[styles.input, { backgroundColor: theme.colors.surface }]}
-                        outlineColor={theme.colors.outline}
-                        activeOutlineColor={theme.colors.onSurface}
-                        theme={{
-                            ...theme,
-                            colors: {
-                                ...theme.colors,
-                                onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
-                            },
-                        }}
-                    />
-
-                    {/* Address Section */}
-                    <TextInput
-                        label="Street"
-                        value={street}
-                        onChangeText={setStreet}
-                        mode="outlined"
-                        left={<TextInput.Icon icon="map-marker" color={theme.colors.onSurface} />}
-                        style={[styles.input, { backgroundColor: theme.colors.surface }]}
-                        outlineColor={theme.colors.outline}
-                        activeOutlineColor={theme.colors.onSurface}
-                        theme={{
-                            ...theme,
-                            colors: {
-                                ...theme.colors,
-                                onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
-                            },
-                        }}
-                    />
-
-                    <View style={{ flexDirection: "row", gap: 10 }}>
+                    {/* Street */}
+                    <View>
                         <TextInput
-                            label="City"
-                            value={city}
-                            onChangeText={setCity}
+                            label="Street"
+                            value={fields.street}
+                            onBlur={() =>
+                                setErrors((prev) => ({
+                                    ...prev,
+                                    street: validateField("street", fields.street, schema.street),
+                                }))
+                            }
+                            onChangeText={(t) => handleChange("street", t)}
                             mode="outlined"
-                            style={[styles.input, { flex: 1, backgroundColor: theme.colors.surface }]}
-                            outlineColor={theme.colors.outline}
+                            left={<TextInput.Icon icon="map-marker" color={theme.colors.onSurface} />}
+                            style={[styles.input, { backgroundColor: theme.colors.surface }]}
                             activeOutlineColor={theme.colors.onSurface}
                             theme={{
                                 ...theme,
@@ -279,53 +279,92 @@ export default function UserRegister() {
                                 },
                             }}
                         />
-                        <TextInput
-                            label="State"
-                            value={state}
-                            onChangeText={setState}
-                            mode="outlined"
-                            style={[styles.input, { flex: 1, backgroundColor: theme.colors.surface }]}
-                            outlineColor={theme.colors.outline}
-                            activeOutlineColor={theme.colors.onSurface}
-                            theme={{
-                                ...theme,
-                                colors: {
-                                    ...theme.colors,
-                                    onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
-                                },
-                            }}
-                        />
+                        <HelperText type="error" visible={!!errors.street}>
+                            {errors.street}
+                        </HelperText>
                     </View>
 
-                    <TextInput
-                        label="Pincode"
-                        value={pincode}
-                        onChangeText={setPincode}
-                        mode="outlined"
-                        keyboardType="numeric"
-                        style={[styles.input, { flex: 1, backgroundColor: theme.colors.surface }]}
-                        outlineColor={theme.colors.outline}
-                        activeOutlineColor={theme.colors.onSurface}
-                        theme={{
-                            ...theme,
-                            colors: {
-                                ...theme.colors,
-                                onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
-                            },
-                        }}
-                    />
+                    {/* City + State */}
+                    <View style={{ flexDirection: "row", gap: 10 }}>
+                        {(["city", "state"] as FieldKeys[]).map((key) => (
+                            <View key={key} style={{ flex: 1 }}>
+                                <TextInput
+                                    label={key.charAt(0).toUpperCase() + key.slice(1)}
+                                    value={fields[key]}
+                                    onBlur={() =>
+                                        setErrors((prev) => ({
+                                            ...prev,
+                                            [key]: validateField(key, fields[key], schema[key]),
+                                        }))
+                                    }
+                                    onChangeText={(t) => handleChange(key, t)}
+                                    mode="outlined"
+                                    style={[styles.input, { backgroundColor: theme.colors.surface }]}
+                                    activeOutlineColor={theme.colors.onSurface}
+                                    theme={{
+                                        ...theme,
+                                        colors: {
+                                            ...theme.colors,
+                                            onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
+                                        },
+                                    }}
+                                />
+                                <HelperText type="error" visible={!!errors[key]}>
+                                    {errors[key]}
+                                </HelperText>
+                            </View>
+                        ))}
+                    </View>
 
+                    {/* Pincode */}
+                    <View>
+                        <TextInput
+                            label="Pincode"
+                            value={fields.pincode}
+                            keyboardType="numeric"
+                            onBlur={() =>
+                                setErrors((prev) => ({
+                                    ...prev,
+                                    pincode: validateField("pincode", fields.pincode, schema.pincode),
+                                }))
+                            }
+                            onChangeText={(t) => handleChange("pincode", t)}
+                            mode="outlined"
+                            style={[styles.input, { backgroundColor: theme.colors.surface }]}
+                            activeOutlineColor={theme.colors.onSurface}
+                            theme={{
+                                ...theme,
+                                colors: {
+                                    ...theme.colors,
+                                    onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
+                                },
+                            }}
+                        />
+                        <HelperText type="error" visible={!!errors.pincode}>
+                            {errors.pincode}
+                        </HelperText>
+                    </View>
+
+                    {/* TERMS */}
                     <View style={styles.checkboxContainer}>
                         <Checkbox.Android
-                            status={acceptTerms ? 'checked' : 'unchecked'}
-                            onPress={() => setAcceptTerms(!acceptTerms)}
-                            color={theme.colors.accent}
+                            status={acceptTerms ? "checked" : "unchecked"}
+                            onPress={() => {
+                                setAcceptTerms(!acceptTerms);
+                                if (errors.terms) {
+                                    setErrors((prev) => ({ ...prev, terms: "" }));
+                                }
+                            }}
                         />
-                        <Text variant="bodyMedium" style={styles.checkboxLabel}>
-                            I agree to the Terms of Service and Privacy Policy *
+                        <Text style={styles.checkboxLabel}>
+                            I agree to the Terms of Service & Privacy Policy *
                         </Text>
                     </View>
+                    <HelperText type="error" visible={!!errors.terms}>
+                        {errors.terms}
+                    </HelperText>
 
+                    {/* SUBMIT */}
                     <Button mode="contained" loading={loading} onPress={handleRegister}>
                         Create Account
                     </Button>
@@ -341,7 +380,6 @@ export default function UserRegister() {
 
 const styles = StyleSheet.create({
     gradientTitle: {
-        fontFamily: "Poppins",
         fontSize: 22,
         fontWeight: "600",
         textAlign: "center",
@@ -353,16 +391,15 @@ const styles = StyleSheet.create({
         borderWidth: 1,
     },
     form: {
-        gap: AppStyles.spacing.md,
+        gap: AppStyles.spacing.sm,
     },
     input: {
+        backgroundColor: "transparent",
     },
     checkboxContainer: {
-        flexDirection: 'row',
-        alignItems: 'center',
-        marginBottom: AppStyles.spacing.md,
-        marginTop: AppStyles.spacing.sm,
-
+        flexDirection: "row",
+        alignItems: "center",
+        marginTop: 6,
     },
     checkboxLabel: {
         marginLeft: 8,

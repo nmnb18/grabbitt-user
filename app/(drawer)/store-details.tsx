@@ -72,7 +72,7 @@ export default function StoreDetailsContainer(props: StoreDetailsContainerProps)
 
     const handleRedeem = (storeData: StoreDetails) => {
         router.push({
-            pathname: "/(drawer)/redeem",
+            pathname: "/(drawer)/redeem/redeem-home",
             params: { store: JSON.stringify(storeData) },
         });
     };

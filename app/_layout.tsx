@@ -64,7 +64,7 @@ export default function RootLayout() {
 
   useEffect(() => {
     // enables transparent status bar on Android
-    SystemUI.setBackgroundColorAsync("red");
+    SystemUI.setBackgroundColorAsync("transparent");
   }, []);
 
   if (!loaded) return null;
@@ -73,7 +73,7 @@ export default function RootLayout() {
     <SafeAreaProvider>
       <PaperProvider theme={theme}>
         {/* FIXED STATUS BAR */}
-
+        <StatusBar style="light" translucent backgroundColor="transparent" />
         <Stack screenOptions={{ headerShown: false }} />
       </PaperProvider>
     </SafeAreaProvider>

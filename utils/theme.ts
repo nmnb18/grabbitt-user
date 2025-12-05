@@ -16,21 +16,21 @@ export const Colors = {
     // Brand colors
     primary: grabbittPrimary,
     secondary: grabbittSecondary,
-    teritary: '#ef3555',
     accent: grabbittAccent,
+    teritary: '#ef3555',
 
-    // UI colors
-    text: "#262626", // Dark gray for readability
-    background: "#FFFFFF", // Clean white
-    tint: grabbittPrimary,
-    icon: grabbittPrimary,
-    tabIconDefault: grabbittAccent,
-    tabIconSelected: grabbittPrimary,
+    // UI colors (adjusted for dark mode)
+    text: "#FFFFFF",
+    background: "#151718",
+    tint: "#FFFFFF",
+    icon: "#9BA1A6",
+    tabIconDefault: "#9BA1A6",
+    tabIconSelected: "#FFFFFF",
 
     // Surface colors
-    surface: "#FFFFFF",
-    surfaceVariant: "#F5F5F5",
-    outline: "#E2E8F0",
+    surface: "#1E293B",
+    surfaceVariant: "#334155",
+    outline: "#475569",
 
     // Status colors
     error: "#EF4444",
@@ -40,10 +40,10 @@ export const Colors = {
     // React Native Paper specific
     onPrimary: "#FFFFFF",
     onSecondary: "#FFFFFF",
-    onBackground: "#262626",
-    onSurface: "#262626",
-    surfaceDisabled: "#F5F5F5",
-    onSurfaceDisabled: "#9CA3B8",
+    onBackground: "#FFFFFF",
+    onSurface: "#FFFFFF",
+    surfaceDisabled: "#334155",
+    onSurfaceDisabled: "#9BA1A6",
   },
   dark: {
     // Brand colors (same for dark mode)

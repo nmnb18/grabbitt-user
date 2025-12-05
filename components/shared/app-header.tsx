@@ -13,18 +13,24 @@ interface GradientHeaderProps {
     showBackButton?: boolean;
     rightComponent?: React.ReactNode;
     colors?: [string, string];
+    onBackPress?: () => void;
 }
 
 export function GradientHeader({
     title,
     showBackButton = true,
     rightComponent,
-    colors
+    colors,
+    onBackPress
 }: GradientHeaderProps) {
     const theme = useTheme();
     const router = useRouter();
 
     const gradientColors = colors || [theme.colors.primary, theme.colors.secondary];
+
+    const handleBackPress = () => {
+        router.back();
+    };
 
     return (
         <LinearGradient
@@ -35,7 +41,7 @@ export function GradientHeader({
         >
             <View style={styles.content}>
                 {showBackButton ? (
-                    <TouchableWithoutFeedback onPress={() => router.back()}>
+                    <TouchableWithoutFeedback onPress={handleBackPress}>
                         <MaterialCommunityIcons
                             name="arrow-left"
                             size={22}

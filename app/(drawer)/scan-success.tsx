@@ -5,7 +5,6 @@ import { useTheme } from '@/hooks/use-theme-color';
 import { useLocalSearchParams, useRouter } from 'expo-router';
 import Animated, { FadeInUp, ZoomIn } from 'react-native-reanimated';
 import { Button } from '@/components/ui/paper-button';
-import { AppHeader } from '@/components/shared/app-header';
 
 
 export default function ScanSuccess() {

@@ -139,7 +139,7 @@ export default function RedemptionContainer(props: RedemptionContainerProps) {
             if (response.data.success) {
                 // Navigate to QR display screen
                 router.push({
-                    pathname: "/(drawer)/redemption-qr",
+                    pathname: "/(drawer)/redeem/redemption-qr",
                     params: {
                         redemption: JSON.stringify({
                             ...response.data,

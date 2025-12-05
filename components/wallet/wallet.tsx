@@ -2,8 +2,7 @@
 import React, { useState } from "react";
 import { View, StyleSheet, ScrollView, RefreshControl, TouchableOpacity } from "react-native";
 import { useTheme } from "@/hooks/use-theme-color";
-import { StoreBalance, WalletData } from "@/types/wallet";
-import { GradientText } from "../ui/gradient-text";
+import { WalletData } from "@/types/wallet";
 import { TotalPointsCard } from "./total-points-card";
 import { EmptyState } from "./empty-state";
 import { StorePointsList } from "./store-points-list";
@@ -41,7 +40,7 @@ export function WalletScreen({
                 contentContainerStyle={styles.content}
             >
                 <TotalPointsCard
-                    totalPoints={walletData.total_points}
+                    stats={walletData.stats}
                     storeCount={walletData.balances.length}
                 />
                 <View style={[

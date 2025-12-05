@@ -27,8 +27,15 @@ export interface Transaction {
     amount?: number; // for payment transactions
 }
 
+export interface WalletStats {
+    available_points: number;
+    total_points_earned: number;
+    points_wating_redeem: number;
+    total_points_redeem: number;
+}
+
 export interface WalletData {
     balances: StoreBalance[];
     transactions: Transaction[];
-    total_points: number;
+    stats: WalletStats;
 }

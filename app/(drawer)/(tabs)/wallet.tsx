@@ -14,7 +14,12 @@ export default function WalletContainer() {
     const [walletData, setWalletData] = useState<WalletData>({
         balances: [],
         transactions: [],
-        total_points: 0
+        stats: {
+            available_points: 0,
+            total_points_earned: 0,
+            points_wating_redeem: 0,
+            total_points_redeem: 0
+        }
     });
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
@@ -31,13 +36,12 @@ export default function WalletContainer() {
                 api.get("/getTransactions")
             ]);
 
-            const balances = balanceRes.data || [];
-            const total_points = balances.reduce((sum: number, b: any) => sum + b.points, 0);
+            const balances = balanceRes.data.balances || [];
 
             setWalletData({
                 balances,
                 transactions: txRes.data || [],
-                total_points
+                stats: balanceRes.data.stats
             });
 
             setHasData(true)

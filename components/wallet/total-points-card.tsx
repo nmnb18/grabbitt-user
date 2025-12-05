@@ -1,17 +1,18 @@
 // components/wallet/total-points-card.tsx
 import React from "react";
 import { StyleSheet, View } from "react-native";
-import { Card, Text } from "react-native-paper";
+import { Card, Chip, Text } from "react-native-paper";
 import { LinearGradient } from "expo-linear-gradient";
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 import { useTheme } from "@/hooks/use-theme-color";
+import { WalletStats } from "@/types/wallet";
 
 interface TotalPointsCardProps {
-    totalPoints: number;
     storeCount: number;
+    stats: WalletStats
 }
 
-export function TotalPointsCard({ totalPoints, storeCount }: TotalPointsCardProps) {
+export function TotalPointsCard({ stats, storeCount }: TotalPointsCardProps) {
     const theme = useTheme();
 
     return (
@@ -31,22 +32,43 @@ export function TotalPointsCard({ totalPoints, storeCount }: TotalPointsCardProp
                 </View>
 
                 <Text style={[styles.pointsValue, { color: theme.colors.onPrimary }]}>
-                    {totalPoints.toLocaleString()}
+                    {stats.total_points_earned.toLocaleString()}
                 </Text>
                 <Text style={[styles.pointsLabel, { color: theme.colors.onPrimary }]}>
                     Total Points
                 </Text>
 
-                <View style={[styles.storeCount, { backgroundColor: theme.colors.text }]}>
-                    <MaterialCommunityIcons
-                        name="store"
-                        size={14}
-                        color={theme.colors.onSurfaceVariant}
-                        style={{ opacity: 0.9 }}
-                    />
-                    <Text style={[styles.storeCountText, { color: theme.colors.onSurfaceVariant }]}>
-                        Across {storeCount} {storeCount === 1 ? "store" : "stores"}
-                    </Text>
+                <View style={[styles.storeChip]}>
+                    <Chip
+                        icon='arrow-down'
+                        style={[
+
+                            { backgroundColor: theme.colors.text, borderWidth: 1 }
+                        ]}
+                        textStyle={{ fontWeight: '600' }}
+                    >
+                        {`${stats.points_wating_redeem}`}
+                    </Chip>
+                    <Chip
+                        icon='star'
+                        style={[
+
+                            { backgroundColor: theme.colors.text, borderWidth: 1 }
+                        ]}
+                        textStyle={{ fontWeight: '600' }}
+                    >
+                        {`${stats.available_points}`}
+                    </Chip>
+                    <Chip
+                        icon='gift'
+                        style={[
+
+                            { backgroundColor: theme.colors.text, borderWidth: 1 }
+                        ]}
+                        textStyle={{ fontWeight: '600' }}
+                    >
+                        {`${stats.total_points_redeem}`}
+                    </Chip>
                 </View>
             </LinearGradient>
         </Card>
@@ -82,6 +104,11 @@ const styles = StyleSheet.create({
         opacity: 0.9,
         fontWeight: '600'
     },
+    storeChip: {
+        flexDirection: 'row',
+        gap: 10,
+        marginTop: 10
+    },
     storeCount: {
         flexDirection: "row",
         alignItems: "center",
@@ -89,6 +116,7 @@ const styles = StyleSheet.create({
         paddingHorizontal: 12,
         paddingVertical: 6,
         borderRadius: 20,
+
     },
     storeCountText: {
         fontSize: 14,
