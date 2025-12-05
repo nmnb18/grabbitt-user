@@ -45,20 +45,19 @@ export default function RedemptionScreen({
     onBack,
 }: RedemptionScreenProps) {
     const theme = useTheme();
-
     const availableOffers = store.offers || [];
     const hasOffers = availableOffers.length > 0;
 
-    const getMinPoints = (): number => {
+    const getMinPoints = (): number | null => {
         if (!store.offers || store.offers.length === 0) {
-            return store.reward_points;
+            return null;
         }
         return Math.min(...store.offers.map(offer => offer.reward_points));
     };
 
-    const getMaxPoints = (): number => {
+    const getMaxPoints = (): number | null => {
         if (!store.offers || store.offers.length === 0) {
-            return store.reward_points;
+            return null;
         }
         return Math.max(...store.offers.map(offer => offer.reward_points));
     };
@@ -164,7 +163,7 @@ export default function RedemptionScreen({
                                 mode="outlined"
                                 value={customPoints}
                                 onChangeText={onPointsChange}
-                                placeholder={`Enter points (${minPoints}-${maxPoints})`}
+                                placeholder={`Enter points`}
                                 keyboardType="numeric"
                                 style={styles.input}
                                 outlineColor={theme.colors.outline}

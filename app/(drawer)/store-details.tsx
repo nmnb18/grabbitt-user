@@ -70,11 +70,31 @@ export default function StoreDetailsContainer(props: StoreDetailsContainerProps)
         }
     };
 
-    const handleRedeem = (storeData: StoreDetails) => {
-        router.push({
-            pathname: "/(drawer)/redeem/redeem-home",
-            params: { store: JSON.stringify(storeData) },
-        });
+    const handleRedeem = async (storeData: StoreDetails) => {
+        setLoading(true);
+        try {
+            const store = await api.get('/getBalanceBySeller', {
+                params: {
+                    seller_id: storeData.user_id
+                }
+            })
+            if (!store.data.can_redeem) {
+                Alert.alert("Redeem", "You don't have enough rewards points! Scan more to redeem points")
+                return;
+            } else {
+                router.push({
+                    pathname: "/(drawer)/redeem/redeem-home",
+                    params: { store: JSON.stringify(store.data) },
+                });
+            }
+        } catch (error: any) {
+            const errorMsg = error.response?.data?.error || "Failed to redeem";
+            Alert.alert("Error", errorMsg);
+        } finally {
+            setLoading(false);
+        }
+
+
     };
 
     const handleBack = () => {
@@ -84,16 +104,6 @@ export default function StoreDetailsContainer(props: StoreDetailsContainerProps)
     // Combine container loading with props loading
     const isLoading = loading || props.loading;
 
-    // If we have an error but still showing skeleton, let skeleton wrapper handle it
-    if (error && !isLoading) {
-        // Error already shown in Alert, component will unmount
-        return null;
-    }
-
-    if (!store) {
-        // Return null, skeleton will show
-        return null;
-    }
 
     return (
         <StoreDetailsWithSkeleton

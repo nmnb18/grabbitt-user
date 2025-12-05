@@ -126,7 +126,7 @@ export interface SellerBusiness {
 }
 // types/store.ts
 export interface StoreDetails {
-    seller_id: string;
+    user_id: string;
     account: {
         email: string;
         name: string;

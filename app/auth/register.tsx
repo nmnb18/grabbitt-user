@@ -3,7 +3,6 @@ import { View, Alert, StyleSheet, KeyboardTypeOptions } from "react-native";
 import {
     Surface,
     TextInput,
-    Button,
     HelperText,
     Checkbox,
     Text,
@@ -18,6 +17,7 @@ import { useTheme, useThemeColor } from "@/hooks/use-theme-color";
 
 import { validators, validateField, validateAll } from "@/utils/validation";
 import { useAuthStore } from "../../store/authStore";
+import { Button } from "@/components/ui/paper-button";
 
 // ----------------------------------------------
 // TYPES
@@ -365,11 +365,11 @@ export default function UserRegister() {
                     </HelperText>
 
                     {/* SUBMIT */}
-                    <Button mode="contained" loading={loading} onPress={handleRegister}>
+                    <Button variant="contained" loading={loading} onPress={handleRegister}>
                         Create Account
                     </Button>
 
-                    <Button mode="text" onPress={() => router.push("/auth/login")}>
+                    <Button variant="text" onPress={() => router.push("/auth/login")}>
                         Already have an account? Login
                     </Button>
                 </View>
@@ -391,7 +391,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
     },
     form: {
-        gap: AppStyles.spacing.sm,
+
     },
     input: {
         backgroundColor: "transparent",

@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Animated, View } from 'react-native';
+import { useTheme } from 'react-native-paper';
 
 interface SkeletonTransitionProps {
     loading?: boolean;
@@ -14,6 +15,7 @@ export default function withSkeletonTransition<SkeletonProps = any>(
     ) {
         return function (props: P & SkeletonProps) {
             const { loading = false, hasData = false } = props;
+            const theme = useTheme();
 
             const [showSkeleton, setShowSkeleton] = useState(true);
             const [showContent, setShowContent] = useState(false);
@@ -51,7 +53,7 @@ export default function withSkeletonTransition<SkeletonProps = any>(
             }, [loading, hasData, showSkeleton]);
 
             return (
-                <View style={{ flex: 1 }}>
+                <View style={{ flex: 1, backgroundColor: theme.colors.background }}>
                     {showSkeleton && (
                         <Animated.View
                             style={{

@@ -34,7 +34,7 @@ export function EmptyState({ icon, title, message, onAction }: EmptyStateProps) 
                     <MaterialCommunityIcons
                         name={icon as any}
                         size={48}
-                        color={theme.colors.onSurfaceVariant}
+                        color={theme.colors.accent}
                     />
                 </View>
 
@@ -44,7 +44,7 @@ export function EmptyState({ icon, title, message, onAction }: EmptyStateProps) 
                 </Text>
 
                 {/* Message */}
-                <Text style={[styles.message, { color: theme.colors.onSurfaceVariant }]}>
+                <Text style={[styles.message, { color: theme.colors.accent }]}>
                     {message}
                 </Text>
 
@@ -64,7 +64,7 @@ export function EmptyState({ icon, title, message, onAction }: EmptyStateProps) 
 const styles = StyleSheet.create({
     card: {
         borderRadius: 16,
-        marginBottom: 24,
+        marginVertical: 24,
     },
     content: {
         paddingVertical: 36,

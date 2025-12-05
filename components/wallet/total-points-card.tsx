@@ -32,7 +32,7 @@ export function TotalPointsCard({ stats, storeCount }: TotalPointsCardProps) {
                 </View>
 
                 <Text style={[styles.pointsValue, { color: theme.colors.onPrimary }]}>
-                    {stats.total_points_earned.toLocaleString()}
+                    {stats?.total_points_earned.toLocaleString() || 0}
                 </Text>
                 <Text style={[styles.pointsLabel, { color: theme.colors.onPrimary }]}>
                     Total Points
@@ -47,7 +47,7 @@ export function TotalPointsCard({ stats, storeCount }: TotalPointsCardProps) {
                         ]}
                         textStyle={{ fontWeight: '600' }}
                     >
-                        {`${stats.points_wating_redeem}`}
+                        {`${stats?.points_wating_redeem || 0}`}
                     </Chip>
                     <Chip
                         icon='star'
@@ -57,7 +57,7 @@ export function TotalPointsCard({ stats, storeCount }: TotalPointsCardProps) {
                         ]}
                         textStyle={{ fontWeight: '600' }}
                     >
-                        {`${stats.available_points}`}
+                        {`${stats?.available_points || 0}`}
                     </Chip>
                     <Chip
                         icon='gift'
@@ -67,7 +67,7 @@ export function TotalPointsCard({ stats, storeCount }: TotalPointsCardProps) {
                         ]}
                         textStyle={{ fontWeight: '600' }}
                     >
-                        {`${stats.total_points_redeem}`}
+                        {`${stats?.total_points_redeem || 0}`}
                     </Chip>
                 </View>
             </LinearGradient>

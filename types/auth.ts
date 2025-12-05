@@ -8,6 +8,7 @@ export interface UserAddress {
 }
 
 export interface UserLocation {
+    address?: UserAddress;
     lat?: number | null;
     lng?: number | null;
 }
@@ -24,7 +25,6 @@ export interface UserSettings {
 }
 export interface UserProfile {
     user_id: string;
-    address: UserAddress;
     account: UserAccount;
     location: UserLocation;
     preferences: UserSettings;

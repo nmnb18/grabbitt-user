@@ -71,14 +71,12 @@ export default function WalletContainer() {
     };
 
     return (
-        <View style={{ flex: 1 }}>
-            <WalletScreenWithSkeleton
-                walletData={walletData}
-                loading={loading}
-                refreshing={refreshing}
-                hasData={hasData}
-                onRefresh={handleRefresh}
-            />
-        </View>
+        <WalletScreenWithSkeleton
+            walletData={walletData}
+            loading={loading}
+            refreshing={refreshing}
+            hasData={hasData}
+            onRefresh={handleRefresh}
+        />
     );
 }

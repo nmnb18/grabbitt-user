@@ -12,7 +12,7 @@ import { RedemptionResponse } from "@/types/redemptions";
 import RedemptionSkeleton from "@/components/skeletons/redemptions";
 import RedemptionScreen from "@/components/wallet/redemption-screen";
 
-const UserHomeWithSkeleton = withSkeletonTransition(RedemptionSkeleton)(RedemptionScreen);
+const RedemptionWithSkeleton = withSkeletonTransition(RedemptionSkeleton)(RedemptionScreen);
 
 interface RedemptionContainerProps {
     loading?: boolean;
@@ -58,10 +58,10 @@ export default function RedemptionContainer(props: RedemptionContainerProps) {
                 const minPointsOffer = [...store.offers].sort((a, b) => a.reward_points - b.reward_points)[0];
                 setSelectedOffer(minPointsOffer);
                 setPointsToRedeem(minPointsOffer.reward_points);
-                setCustomPoints(minPointsOffer.reward_points.toString());
+                setCustomPoints(minPointsOffer.reward_points?.toString());
             } else {
                 setPointsToRedeem(store.reward_points);
-                setCustomPoints(store.reward_points.toString());
+                setCustomPoints(store.reward_points?.toString());
             }
         }
     }, [store]);
@@ -175,7 +175,7 @@ export default function RedemptionContainer(props: RedemptionContainerProps) {
     const isLoading = loading || props.loading;
 
     return (
-        <UserHomeWithSkeleton
+        <RedemptionWithSkeleton
             store={store}
             selectedOffer={selectedOffer}
             customPoints={customPoints}

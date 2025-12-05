@@ -15,6 +15,7 @@ import { StoreHeader } from "./store-header";
 import { ContactButtons } from "./contact-buttons";
 import { OffersList } from "./offer-list";
 import { RewardsCard } from "./rewards-card";
+import api from "@/services/axiosInstance";
 
 // Import styles
 
@@ -47,13 +48,18 @@ export default function StoreDetailsScreen({
         }
     };
 
-    const handleRedeemPoints = () => {
+    const handleRedeemPoints = async () => {
         if (onRedeem) {
             onRedeem(store);
         } else {
+            const storeData = await api.get('/getBalanceBySeller', {
+                params: {
+                    seller_id: store.user_id
+                }
+            })
             router.push({
                 pathname: "/(drawer)/redeem/redeem-home",
-                params: { store: JSON.stringify(store) },
+                params: { store: JSON.stringify(storeData.data) },
             });
         }
     };
