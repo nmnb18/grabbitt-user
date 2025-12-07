@@ -80,15 +80,15 @@ export default function UserHomeContainer() {
   );
 
   // // Periodic refresh every 30 seconds when app is active
-  // useEffect(() => {
-  //   const interval = setInterval(() => {
-  //     if (!loading && !refreshing) {
-  //       loadNearbySellers(false, true); // Silent background refresh
-  //     }
-  //   }, 30000);
+  useEffect(() => {
+    const interval = setInterval(() => {
+      if (!loading && !refreshing) {
+        loadNearbySellers(false, true); // Silent background refresh
+      }
+    }, 30000);
 
-  //   return () => clearInterval(interval);
-  // }, [loading, refreshing, loadNearbySellers]);
+    return () => clearInterval(interval);
+  }, [loading, refreshing, loadNearbySellers]);
 
   const handleRefresh = () => {
     setRefreshing(true);
