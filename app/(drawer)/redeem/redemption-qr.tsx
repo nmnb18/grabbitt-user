@@ -471,7 +471,6 @@ const styles = StyleSheet.create({
     },
     detailLabel: {
         fontSize: 14,
-        flex: 1,
     },
     detailValue: {
         fontSize: 14,

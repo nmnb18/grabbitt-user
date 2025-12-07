@@ -1,11 +1,8 @@
-// components/wallet/store-points-list.tsx
-import React, { useEffect, useState } from "react";
+import React from "react";
 import { StyleSheet, View } from "react-native";
-import { Card, Text, Surface, Divider } from "react-native-paper";
-import { LinearGradient } from "expo-linear-gradient";
+import { Card, Text, Surface } from "react-native-paper";
 import { useTheme } from "@/hooks/use-theme-color";
 import { StoreBalance } from "@/types/wallet";
-import { Button } from "../ui/paper-button";
 import { useRouter } from "expo-router";
 import { GradientText } from "../ui/gradient-text";
 
@@ -35,7 +32,6 @@ export function StorePointsList({ balances }: StorePointsListProps) {
                     <Card
                         key={store.seller_id}
                         style={[styles.storeCard, { backgroundColor: theme.colors.surface }]}
-                        elevation={2}
                         onPress={() => handleRedeemPress(store)}
                     >
                         <Card.Content>
@@ -53,7 +49,7 @@ export function StorePointsList({ balances }: StorePointsListProps) {
                                         {store.seller_name}
                                     </Text>
                                     <Text
-                                        style={[styles.storeReward, { color: theme.colors.onSurface }]}
+                                        style={[styles.storeReward, { color: theme.colors.accent }]}
                                         numberOfLines={2}
                                     >
                                         {store.reward_description}
@@ -68,12 +64,14 @@ export function StorePointsList({ balances }: StorePointsListProps) {
                                         points
                                     </Text>
                                 </View>
+
+                            </View>
+                            <View style={styles.redeemOverlay}>
+                                <GradientText >Tap to Redeem</GradientText>
                             </View>
 
-                            <Divider style={[styles.divider, { backgroundColor: theme.colors.outline }]} />
-
                             {/* Redeem Button */}
-                            <GradientText >Tap to Redeem</GradientText>
+
 
                         </Card.Content>
                     </Card>
@@ -87,13 +85,13 @@ const styles = StyleSheet.create({
     container: { marginTop: 16 },
     storeCard: {
         borderRadius: 16,
-        marginBottom: 12,
         overflow: 'hidden',
+        position: 'relative'
     },
     storeHeader: {
         flexDirection: "row",
         alignItems: "center",
-        marginBottom: 12,
+        marginBottom: 10,
     },
     storeIcon: {
         width: 48,
@@ -113,7 +111,7 @@ const styles = StyleSheet.create({
         marginBottom: 2,
     },
     storeReward: {
-        fontSize: 12,
+        fontSize: 14,
         lineHeight: 16,
     },
     pointsContainer: {
@@ -128,41 +126,13 @@ const styles = StyleSheet.create({
         fontSize: 12,
         marginTop: 2,
     },
-    divider: {
-        marginVertical: 12,
-        height: 1,
-    },
-    progressContainer: {
-        marginBottom: 16,
-    },
-    progressLabels: {
-        flexDirection: "row",
-        justifyContent: "space-between",
-        marginBottom: 6,
-    },
-    progressLabel: {
-        fontSize: 12,
-        fontWeight: "500",
-    },
-    progressPercentage: {
-        fontSize: 12,
-        fontWeight: "600",
-    },
-    progressBar: {
-        height: 8,
-        borderRadius: 4,
-        overflow: "hidden",
-        marginBottom: 6,
-    },
-    progressFill: {
-        height: "100%",
-    },
-    progressText: {
-        fontSize: 11,
-        textAlign: "center",
-    },
-    redeemButton: {
-        borderRadius: 12,
-        marginTop: 4,
-    },
+    redeemOverlay: {
+        position: "absolute",
+        bottom: 5,
+        alignSelf: "center",
+        paddingVertical: 4,
+        paddingHorizontal: 10,
+        borderRadius: 8,
+        backgroundColor: "rgba(0,0,0,0.05)",
+    }
 });
