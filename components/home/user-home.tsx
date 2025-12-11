@@ -4,6 +4,7 @@ import {
     StyleSheet,
     ScrollView,
     RefreshControl,
+    Image,
 } from "react-native";
 import { useRouter } from "expo-router";
 import { useAuthStore } from "@/store/authStore";
@@ -156,7 +157,12 @@ export default function UserHome({
                             >
                                 <Card.Content style={styles.storeCardInner}>
                                     <Surface style={styles.storeIcon}>
-                                        <Text style={{ fontSize: 26 }}>🏪</Text>
+
+                                        {seller?.logo ? <Image
+                                            source={{ uri: seller.logo }}
+                                            style={styles.logo}
+                                        /> :
+                                            <Text style={{ fontSize: 26 }}>🏪</Text>}
                                     </Surface>
 
                                     <View style={styles.storeInfo}>
@@ -225,6 +231,12 @@ export default function UserHome({
 const styles = StyleSheet.create({
     // ... your existing styles remain exactly the same
     container: { flex: 1 },
+    logo: {
+        width: 56,
+        height: 56,
+        borderRadius: 28,
+        backgroundColor: "#EEE",
+    },
     content: { flex: 1 },
     scrollContent: { paddingHorizontal: 16, paddingBottom: 30, paddingTop: 15 },
     searchBar: { marginBottom: 16, elevation: 3 },

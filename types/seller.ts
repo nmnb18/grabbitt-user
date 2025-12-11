@@ -99,6 +99,8 @@ export interface SimplifiedSeller {
     description: string;
     points_per_visit: number;
     reward_points: number;
+    logo?: string;
+    banner?: string;
     reward_description?: {
         text: any,
         type: string

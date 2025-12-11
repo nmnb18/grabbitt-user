@@ -27,12 +27,14 @@ export default function RedemptionQRScreen() {
     const [redemption, setRedemption] = useState<Redemption | null>(null);
     const [loading, setLoading] = useState(false);
     const [refreshing, setRefreshing] = useState(false);
+    const [qrData, setQrData] = useState<string | undefined>('');
 
     useEffect(() => {
         if (params.redemption) {
             try {
                 const parsedRedemption = JSON.parse(params.redemption as string);
                 setRedemption(parsedRedemption);
+                setQrData(parsedRedemption?.qr_code_base64)
             } catch (error) {
                 console.error("Failed to parse redemption:", error);
                 Alert.alert("Error", "Invalid redemption data");
@@ -87,7 +89,7 @@ export default function RedemptionQRScreen() {
 
         try {
             setRefreshing(true);
-            const response = await api.get(`/redemptionStatus`, {
+            const response = await api.get(`/getRedemptionStatus`, {
                 params: { redemption_id: redemption.redemption_id }
             });
 
@@ -148,6 +150,47 @@ export default function RedemptionQRScreen() {
         );
     };
 
+    const pollRedemptionStatus = async () => {
+        try {
+            const response = await api.get("/getRedemptionStatus", {
+                params: { redemption_id: redemption?.redemption_id },
+            });
+
+            if (!response.data.success) return;
+
+            const updated = response.data.redemption;
+
+            // Update UI
+            setRedemption(updated);
+
+            // Stop polling & alert once status is final
+            if (updated.status !== "pending") {
+                Alert.alert(
+                    "Redemption Updated",
+                    `Your redemption is now: ${updated.status.toUpperCase()}`,
+                    [{ text: "OK", onPress: () => router.navigate('/(drawer)/(tabs)/home') }]
+                );
+            }
+        } catch (error) {
+            console.error("Polling error:", error);
+        }
+    };
+
+
+    useEffect(() => {
+        let interval: any = null;
+
+        if (redemption && redemption.status === "pending") {
+            interval = setInterval(() => {
+                pollRedemptionStatus();
+            }, 10000); // every 10 seconds
+        }
+
+        return () => {
+            if (interval) clearInterval(interval);
+        };
+    }, [redemption]);
+
     if (!redemption) {
         return (
             <SafeAreaView style={[styles.container, { backgroundColor: theme.colors.background }]}>
@@ -198,9 +241,9 @@ export default function RedemptionQRScreen() {
                 {/* QR Code Display */}
                 <View style={styles.qrContainer}>
                     <Surface style={[styles.qrCard, { backgroundColor: theme.colors.surface }]}>
-                        {redemption.qr_code_base64 ? (
+                        {qrData ? (
                             <Image
-                                source={{ uri: `${redemption.qr_code_base64}` }}
+                                source={{ uri: `${qrData}` }}
                                 style={styles.qrImage}
                                 resizeMode="contain"
                             />

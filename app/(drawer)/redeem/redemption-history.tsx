@@ -1,7 +1,7 @@
 // screens/wallet/redemption-history-container.tsx
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Alert } from "react-native";
-import { useRouter } from "expo-router";
+import { useFocusEffect, useRouter } from "expo-router";
 
 import withSkeletonTransition from "@/components/wrappers/withSkeletonTransition";
 
@@ -32,9 +32,11 @@ export default function RedemptionHistoryContainer(props: RedemptionHistoryConta
         expired: 0,
     });
 
-    useEffect(() => {
-        fetchRedemptions();
-    }, []);
+    useFocusEffect(
+        useCallback(() => {
+            fetchRedemptions();
+        }, [])
+    );
 
     const fetchRedemptions = async () => {
         try {

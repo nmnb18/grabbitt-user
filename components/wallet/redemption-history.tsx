@@ -270,7 +270,7 @@ export default function RedemptionHistoryScreen() {
                                 {stats.cancelled + stats.expired}
                             </Text>
                             <Text style={[styles.statLabel, { color: theme.colors.text }]}>
-                                Failed
+                                Cancelled
                             </Text>
                         </View>
                     </View>

@@ -110,12 +110,12 @@ export function RecentActivity({ transactions, onRefresh }: RecentActivityProps)
                                     style={[
                                         styles.points,
                                         {
-                                            color: isPositive ? theme.colors.success : theme.colors.secondary,
+                                            color: isPositive ? theme.colors.success : theme.colors.error,
                                             fontWeight: '600'
                                         }
                                     ]}
                                 >
-                                    {isPositive ? '+' : '-'}{transaction.points}
+                                    {isPositive ? '+' : ''}{transaction.points}
                                 </Text>
                             </View>
 
