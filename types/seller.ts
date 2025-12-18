@@ -92,6 +92,9 @@ export interface UPIInfo {
 
 // Simplified Seller for listing (to avoid sending sensitive data)
 export interface SimplifiedSeller {
+    address: string;
+    phone: string;
+    distance_km: undefined;
     id: string;
     shop_name: string;
     business_type: BusinessType;
@@ -112,6 +115,7 @@ export interface SimplifiedSeller {
     subscription: {
         tier: SubscriptionTier;
     };
+    perksAvailable: boolean;
 }
 
 // API Response Types

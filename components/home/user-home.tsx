@@ -19,16 +19,16 @@ import {
 import { MaterialCommunityIcons } from "@expo/vector-icons";
 
 import { useTheme, useThemeColor } from "@/hooks/use-theme-color";
-import { GradientText } from "@/components/ui/gradient-text";
 import { SimplifiedSeller } from "@/types/seller";
+import { PulsingChip } from "../ui/pluse-chip";
 
-const CATEGORIES = [
-    { label: "All", value: 'all' },
-    { label: "Restaurant/Cafe", value: 'restaurant' },
-    { label: "Shopping", value: 'other' },
-    { label: "Retail Store", value: 'retail' },
-    { label: "Entertainment", value: 'other' },
-    { label: "Services", value: 'service' },
+export const BUSINESS_TYPES = [
+    { label: 'All', value: 'all' },
+    { label: 'Restaurant/Cafe', value: 'restaurant' },
+    { label: 'Retail Store', value: 'retail' },
+    { label: 'Professional Services', value: 'service' },
+    { label: 'FMCG/Manufacturer', value: 'fmcg' },
+    { label: 'Other', value: 'other' },
 ];
 
 // Props interface
@@ -73,7 +73,7 @@ export default function UserHome({
         }
 
         if (category !== "all") {
-            result = result.filter((s) => s.category === category);
+            result = result.filter((s) => s.business_type.toLowerCase().includes(category));
         }
 
         setFilteredSellers(result);
@@ -107,7 +107,7 @@ export default function UserHome({
                     showsHorizontalScrollIndicator={false}
                     contentContainerStyle={styles.categoriesScroll}
                 >
-                    {CATEGORIES.map((c) => (
+                    {BUSINESS_TYPES.map((c) => (
                         <Chip
                             key={c.label}
                             selected={category === c.value}
@@ -118,7 +118,6 @@ export default function UserHome({
                                 { backgroundColor: theme.colors.outline },
                                 category === c.value && { backgroundColor: theme.colors.tertiary },
                             ]}
-                            textStyle={styles.categoryChipText}
                         >
                             {c.label}
                         </Chip>
@@ -146,68 +145,133 @@ export default function UserHome({
                             <Card
                                 key={seller.id}
                                 style={[styles.storeCard, { backgroundColor: theme.colors.surface }]}
-                                onPress={() => {
+                                onPress={() =>
                                     router.push({
-                                        pathname: '/(drawer)/store-details',
-                                        params: {
-                                            storeId: seller.id
-                                        }
+                                        pathname: "/(drawer)/store/store-details",
+                                        params: { storeId: seller.id },
                                     })
-                                }}
+                                }
                             >
-                                <Card.Content style={styles.storeCardInner}>
-                                    <Surface style={styles.storeIcon}>
+                                {/* BANNER */}
+                                <View style={styles.bannerWrapper}>
+                                    <Image
+                                        source={{
+                                            uri:
+                                                seller.banner ||
+                                                "https://images.unsplash.com/photo-1528698827591-e19ccd7bc23d",
+                                        }}
+                                        style={styles.bannerImage}
+                                    />
 
-                                        {seller?.logo ? <Image
-                                            source={{ uri: seller.logo }}
-                                            style={styles.logo}
-                                        /> :
-                                            <Text style={{ fontSize: 26 }}>🏪</Text>}
-                                    </Surface>
+                                    <View style={styles.bannerOverlay} />
 
-                                    <View style={styles.storeInfo}>
-                                        <Text style={styles.storeName}>{seller.shop_name}</Text>
-                                        {seller.description && (
-                                            <Text numberOfLines={2} style={[styles.storeDesc, { color: theme.colors.accent }]}>
-                                                {seller.description}
-                                            </Text>
+                                    {/* TOP ROW */}
+                                    <View style={styles.bannerTop}>
+                                        {seller.category && (
+                                            <Chip compact style={{ borderColor: theme.colors.tertiary, borderWidth: 1, backgroundColor: theme.colors.background, alignSelf: 'center' }}
+                                                textStyle={{ color: theme.colors.text }}>
+                                                {seller.category.toUpperCase()}
+                                            </Chip>
                                         )}
 
+                                        {seller.distance_km !== undefined && (
+                                            <View style={styles.distancePill}>
+                                                <MaterialCommunityIcons
+                                                    name="map-marker-distance"
+                                                    size={14}
+                                                    color="#fff"
+                                                />
+                                                <Text style={styles.distanceText}>
+                                                    {seller.distance_km} km
+                                                </Text>
+                                            </View>
+                                        )}
+                                    </View>
+
+                                    {/* BOTTOM ROW */}
+                                    <View style={styles.bannerBottom}>
+                                        <Surface style={styles.logoSurface}>
+                                            {seller.logo ? (
+                                                <Image source={{ uri: seller.logo }} style={styles.logo} />
+                                            ) : (
+                                                <Text style={{ fontSize: 22 }}>🏪</Text>
+                                            )}
+                                        </Surface>
+
+                                        <View style={styles.titleBlock}>
+                                            <Text style={styles.storeName}>{seller.shop_name}</Text>
 
 
-                                    </View>
-                                    {seller.category && (
-                                        <Chip
-                                            compact
-                                            mode="outlined"
-                                            style={[
-                                                styles.storeCategory,
-                                                { borderColor: theme.colors.tertiary }
-                                            ]}
-                                            textStyle={{
-                                                color: theme.colors.text,
-                                                fontSize: 12,
-                                                fontWeight: "600",
-                                                marginVertical: 0,
-                                                marginTop: 1,
-                                            }}
-                                        >
-                                            {seller.category.toUpperCase()}
-                                        </Chip>
-                                    )}
-                                </Card.Content>
-                                <View style={styles.rewardRow}>
-                                    <View style={styles.rewardData}>
-                                        <MaterialCommunityIcons name="star-circle" size={20} color={theme.colors.tertiary} />
-                                        {seller.reward_description?.type !== 'slab' && <Text style={styles.rewardText}>{seller.reward_description?.text}</Text>}
-                                        {seller.reward_description?.type === 'slab' && <View style={styles.slabRewards}>{seller.reward_description?.text?.map((t: string, index: number) => <Text key={index} style={styles.rewardText}>{t}</Text>)}</View>}
-                                    </View>
-                                    <View style={styles.rewardData}>
-                                        <MaterialCommunityIcons name="gift" size={20} color={theme.colors.tertiary} />
-                                        <Text style={styles.rewardText}>{seller.reward_points} pts rewarded</Text>
+                                        </View>
+
                                     </View>
                                 </View>
+
+                                {/* BODY */}
+                                <Card.Content style={styles.body}>
+                                    {(seller.business_type || seller.description) && (
+                                        <View style={styles.description}>
+                                            <Text numberOfLines={2} style={styles.subText}>
+                                                {seller.business_type}
+                                                {seller.description ? ` • ${seller.description}` : ""}
+                                            </Text>
+                                            {seller.perksAvailable && (
+                                                <PulsingChip
+                                                    label="TODAY'S PERK"
+                                                    color={theme.colors.tertiary}
+                                                />
+                                            )}
+                                        </View>
+
+                                    )}
+                                    <View style={styles.contact}>
+                                        <View style={styles.contactItem}>
+                                            <MaterialCommunityIcons
+                                                name="google-maps"
+                                                size={18}
+                                                color={theme.colors.accent}
+                                            />
+                                            <Text style={[{ color: theme.colors.onSurfaceDisabled }]}>{seller.address}</Text>
+                                        </View>
+                                        <View style={styles.contactItem}>
+                                            <MaterialCommunityIcons
+                                                name="phone"
+                                                size={18}
+                                                color={theme.colors.accent}
+                                            />
+                                            <Text style={[{ color: theme.colors.onSurfaceDisabled }]}>{seller.phone}</Text>
+
+                                        </View>
+                                    </View>
+
+                                    <View style={[styles.actionRow, { borderColor: theme.colors.accent }]}>
+
+
+                                        <View style={styles.actionBtn}>
+                                            <MaterialCommunityIcons
+                                                name="star-circle"
+                                                size={18}
+                                                color={theme.colors.tertiary}
+                                            />
+                                            <Text style={styles.actionText}>
+                                                {seller.reward_points} pts
+                                            </Text>
+                                        </View>
+                                        <View style={[styles.actionBtn, { borderColor: theme.colors.accent, borderLeftWidth: 1 }]}>
+                                            <MaterialCommunityIcons
+                                                name="eye-outline"
+                                                size={18}
+                                                color={theme.colors.primary}
+                                            />
+                                            <Text style={styles.actionText}>View</Text>
+                                        </View>
+                                    </View>
+                                </Card.Content>
                             </Card>
+
+
+
+
                         ))
                     )}
                 </View>
@@ -231,33 +295,154 @@ export default function UserHome({
 const styles = StyleSheet.create({
     // ... your existing styles remain exactly the same
     container: { flex: 1 },
+
+    contact: {
+        paddingHorizontal: 14,
+        gap: 12,
+        paddingVertical: 6,
+        marginBottom: 10
+    },
+    contactItem: {
+        flexDirection: 'row',
+        alignItems: 'center',
+        gap: 8
+    }
+    ,
+    storeCard: {
+        borderRadius: 18,
+        marginBottom: 20,
+    },
+
+    description: {
+        flexDirection: 'row',
+        marginTop: 4,
+        justifyContent: 'space-between',
+        alignItems: 'center'
+    },
+
+    /* ---------- Banner ---------- */
+    bannerWrapper: {
+        height: 160,
+        position: "relative",
+    },
+
+    bannerImage: {
+        width: "100%",
+        height: "100%",
+    },
+
+    bannerOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: "rgba(0,0,0,0.55)",
+    },
+
+    /* Top row */
+    bannerTop: {
+        position: "absolute",
+        top: 10,
+        left: 10,
+        right: 10,
+        flexDirection: "row",
+        justifyContent: "space-between",
+        alignItems: "center",
+    },
+
+    categoryChip: {
+    },
+
+    distancePill: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 4,
+        paddingHorizontal: 8,
+        paddingVertical: 4,
+        borderRadius: 12,
+        backgroundColor: "rgba(0,0,0,0.6)",
+    },
+
+    distanceText: {
+        color: "#fff",
+        fontSize: 12,
+        fontWeight: "600",
+    },
+
+    /* Bottom row */
+    bannerBottom: {
+        position: "absolute",
+        top: 125,
+        left: 12,
+        right: 12,
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 10,
+    },
+
+    logoSurface: {
+        width: 46,
+        height: 46,
+        borderRadius: 23,
+        justifyContent: "center",
+        alignItems: "center",
+        backgroundColor: "#fff",
+    },
+
     logo: {
-        width: 56,
-        height: 56,
-        borderRadius: 28,
-        backgroundColor: "#EEE",
+        width: 40,
+        height: 40,
+        borderRadius: 20,
+    },
+
+    titleBlock: {
+        paddingBottom: 10
+    },
+
+    storeName: {
+        fontSize: 18,
+        fontWeight: "700",
+    },
+
+    subText: {
+        fontSize: 12,
+        marginTop: 20,
+        marginBottom: 12,
+        textTransform: 'capitalize',
+        paddingHorizontal: 14
+    },
+
+    /* ---------- Body ---------- */
+    body: {
+        padding: 14,
+        marginHorizontal: -14,
+        marginVertical: -14
+    },
+
+    actionRow: {
+        flexDirection: "row",
+        justifyContent: "space-between",
+        borderTopWidth: 1,
+    },
+
+    actionBtn: {
+        flexDirection: "row",
+        alignItems: "center",
+        justifyContent: "center",
+        paddingHorizontal: 14,
+        paddingVertical: 14,
+        gap: 6,
+        flex: 1
+    },
+
+    actionText: {
+        fontSize: 18,
     },
     content: { flex: 1 },
     scrollContent: { paddingHorizontal: 16, paddingBottom: 30, paddingTop: 15 },
     searchBar: { marginBottom: 16, elevation: 3 },
     categoriesScroll: { flexDirection: "row", gap: 10, marginBottom: 20 },
-    categoryChip: { borderRadius: 20 },
-    categoryChipText: { fontWeight: "500" },
     storeSection: { marginBottom: 20 },
     sectionTitle: { fontSize: 20, fontWeight: "700", marginBottom: 4, textAlign: 'center' },
     sectionSubtitle: { fontSize: 14, color: "#6B7280", marginBottom: 16 },
     emptyCard: { borderRadius: 16, padding: 20 },
     emptyTitle: { marginTop: 12, fontSize: 16, fontWeight: "600" },
-    storeCard: { marginBottom: 16, borderRadius: 16 },
-    storeCardInner: { flexDirection: "row", gap: 12, paddingVertical: 12 },
-    storeIcon: { width: 56, height: 56, borderRadius: 28, justifyContent: "center", alignItems: "center" },
-    storeInfo: { flex: 1 },
-    storeName: { fontSize: 16, fontWeight: "600", marginBottom: 4 },
-    storeCategory: { borderRadius: 16, alignSelf: 'flex-start' },
-    storeDesc: { fontSize: 12, marginBottom: 4 },
-    rewardRow: { flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 12, paddingBottom: 12, justifyContent: 'space-between' },
-    rewardData: { flexDirection: "row", alignItems: "center", gap: 6 },
-    rewardText: { fontSize: 14, fontWeight: "500" },
     fab: { position: "absolute", bottom: 50, right: 16 },
-    slabRewards: { gap: 4 }
 });

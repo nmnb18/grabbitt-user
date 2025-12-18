@@ -14,14 +14,12 @@ const RedemptionHistoryWithSkeleton = withSkeletonTransition(RedemptionHistorySk
     RedemptionHistoryScreen
 );
 
-interface RedemptionHistoryContainerProps {
+type RedemptionHistoryContainerProps = {
     loading?: boolean;
     hasData?: boolean;
 }
 
 export default function RedemptionHistoryContainer(props: RedemptionHistoryContainerProps) {
-    const router = useRouter();
-
     const [redemptions, setRedemptions] = useState<any[]>([]);
     const [loading, setLoading] = useState(true);
     const [stats, setStats] = useState({
@@ -30,6 +28,9 @@ export default function RedemptionHistoryContainer(props: RedemptionHistoryConta
         redeemed: 0,
         cancelled: 0,
         expired: 0,
+        total_points: 0,
+        redeemed_points: 0,
+        pending_points: 0,
     });
 
     useFocusEffect(

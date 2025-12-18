@@ -1,3 +1,4 @@
+import { PerkStatus } from "@/types/perks";
 import { Colors } from "./theme";
 
 export const ROLE = 'seller';
@@ -35,3 +36,29 @@ export const QR_CODE_TYPES = [
     { value: 'static', label: 'Static QR', description: 'Once per day per customer' },
     { value: 'static_hidden', label: 'Static with Hidden Code', description: 'For product packaging' },
 ];
+
+
+export const PERK_STATUS_META: Record<
+    PerkStatus,
+    {
+        label: string;
+        icon: string;
+        colorKey: "success" | "warning" | "error";
+    }
+> = {
+    CLAIMED: {
+        label: "Claimed",
+        icon: "qrcode",
+        colorKey: "warning",
+    },
+    REDEEMED: {
+        label: "Redeemed",
+        icon: "check-circle",
+        colorKey: "success",
+    },
+    EXPIRED: {
+        label: "Expired",
+        icon: "clock-alert",
+        colorKey: "error",
+    },
+};

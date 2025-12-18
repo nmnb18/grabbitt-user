@@ -17,7 +17,15 @@ import { GradientHeader } from "@/components/shared/app-header";
 import api from "@/services/axiosInstance";
 import { RedemptionHistoryItem, RedemptionHistoryResponse } from "@/types/redemptions";
 
-export default function RedemptionHistoryScreen() {
+type RedemptionProps = {
+    stats: any;
+    redemptions: RedemptionHistoryItem[];
+    loading: boolean;
+    hasData: boolean;
+    onRefresh: () => void;
+}
+
+export default function RedemptionHistoryScreen({ stats, redemptions, onRefresh }: RedemptionProps) {
     const theme = useTheme();
     const router = useRouter();
 
@@ -26,52 +34,20 @@ export default function RedemptionHistoryScreen() {
     const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [filter, setFilter] = useState<'all' | 'pending' | 'redeemed' | 'cancelled' | 'expired'>('all');
-    const [stats, setStats] = useState({
-        total: 0,
-        pending: 0,
-        redeemed: 0,
-        cancelled: 0,
-        expired: 0,
-        total_points: 0,
-        redeemed_points: 0,
-        pending_points: 0,
-    });
+
     const [loadingQR, setLoadingQR] = useState<string | null>(null);
 
-    useEffect(() => {
-        fetchRedemptions();
-    }, []);
 
     // Apply filter when allRedemptions or filter changes
     useEffect(() => {
         if (filter === 'all') {
-            setFilteredRedemptions(allRedemptions);
+            setFilteredRedemptions(redemptions);
         } else {
-            setFilteredRedemptions(allRedemptions.filter(r => r.status === filter));
+            setFilteredRedemptions(redemptions.filter(r => r.status === filter));
         }
-    }, [allRedemptions, filter]);
+    }, [redemptions, filter]);
 
-    const fetchRedemptions = async (isRefreshing = false) => {
-        try {
-            if (!isRefreshing) {
-                setLoading(true);
-            }
 
-            // API call WITHOUT status filter - we'll filter on client side
-            const response = await api.get<RedemptionHistoryResponse>("/getUserRedemptions");
-            if (response.data.success) {
-                setAllRedemptions(response.data.redemptions);
-                if (response.data.stats) {
-                    setStats(response.data.stats);
-                }
-            }
-        } catch (error: any) {
-            console.error("Fetch redemptions error:", error);
-        } finally {
-            setLoading(false);
-            setRefreshing(false);
-        }
-    };
 
     const fetchRedemptionQR = async (redemptionId: string) => {
         try {
@@ -94,10 +70,6 @@ export default function RedemptionHistoryScreen() {
         }
     };
 
-    const onRefresh = () => {
-        setRefreshing(true);
-        fetchRedemptions(true);
-    };
 
     const formatTimeAgo = (dateString: string | Date) => {
         try {

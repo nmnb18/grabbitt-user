@@ -24,7 +24,7 @@ export const OffersList: React.FC<OffersListProps> = ({ offers = [] }) => {
     return (
         <View style={styles.offersContainer}>
             <Text style={[styles.title, { color: theme.colors.onSurface }]}>
-                Available Offers
+                Available Points Offers
             </Text>
             {offers.map((offer, index) => (
                 <Surface
@@ -61,12 +61,11 @@ const styles = StyleSheet.create({
     offersContainer: {
         width: '100%',
         gap: 8,
-        marginBottom: 20,
+        marginTop: 24,
     },
     title: {
         fontSize: 18,
-        fontWeight: '600',
-        marginBottom: 12,
+        textAlign: 'center'
     },
     offerCard: {
         borderRadius: 12,

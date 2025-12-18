@@ -39,3 +39,15 @@ export interface WalletData {
     transactions: Transaction[];
     stats: WalletStats;
 }
+
+export interface Redemption {
+    user_id: string;
+    seller_id: string
+    offer_id: string;
+    offer_title: string;
+    min_spend: string;
+    redeem_code: string;
+    date: string;
+    status: string;
+    created_at: string;
+}

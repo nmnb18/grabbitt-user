@@ -16,6 +16,9 @@ import { ContactButtons } from "./contact-buttons";
 import { OffersList } from "./offer-list";
 import { RewardsCard } from "./rewards-card";
 import api from "@/services/axiosInstance";
+import { TodayOfferModal } from "./today-offer-modal";
+import { Chip, Text } from "react-native-paper";
+import { GradientText } from "../ui/gradient-text";
 
 // Import styles
 
@@ -23,17 +26,30 @@ interface StoreDetailsScreenProps {
     store: StoreDetails;
     loading?: boolean;
     onBack?: () => void;
+    storeId: string;
+    todayOffer?: any;
+    redemptionCode: string;
+    redemptionStatus: string;
+    setRedemptionCode: (code: string) => void;
+    setRedemptionStatus: (status: string) => void;
     onRedeem?: (store: StoreDetails) => void;
 }
 
 export default function StoreDetailsScreen({
     store,
     loading = false,
+    todayOffer,
+    storeId,
+    redemptionCode,
+    redemptionStatus,
+    setRedemptionCode,
+    setRedemptionStatus,
     onBack,
     onRedeem,
 }: StoreDetailsScreenProps) {
     const theme = useTheme();
     const router = useRouter();
+    const [showTodayModal, setShowTodayModal] = React.useState(false);
 
     const [expandedSections, setExpandedSections] = React.useState({
         rewards: false,
@@ -110,6 +126,50 @@ export default function StoreDetailsScreen({
                     onGetDirections={handleOpenMaps}
                 />
 
+                {todayOffer && !redemptionCode && (
+                    <Button
+                        variant="contained"
+                        icon="calendar-star"
+                        onPress={() => setShowTodayModal(true)}
+                    >
+                        What's in Today?
+                    </Button>
+                )}
+                {redemptionCode && (
+                    <View>
+                        <Text style={styles.codeLabel}>Your Perk Code for Today</Text>
+
+                        <View style={styles.codeBox}>
+                            <GradientText style={styles.codeText}>
+                                {redemptionCode}
+                            </GradientText>
+                            <Chip
+
+                                style={{ borderColor: theme.colors.success, borderWidth: 1, backgroundColor: theme.colors.background, alignSelf: 'center' }}
+                                textStyle={{ color: theme.colors.text }}
+
+
+                            >
+                                {redemptionStatus}
+                            </Chip>
+                            <View>
+                                <Text style={styles.codeHint}>
+                                    1.) Visit Store (valid only for today)
+                                </Text>
+                                <Text style={styles.codeHint}>
+                                    2.) Show this code to the store to claim you perk
+                                </Text>
+                                <Text style={styles.codeHint}>
+                                    3.) Enjoy your perks
+                                </Text>
+                            </View>
+                        </View>
+
+
+
+                    </View>
+                )}
+
                 <OffersList offers={store.rewards.offers} />
 
                 {store.rewards && (
@@ -119,6 +179,7 @@ export default function StoreDetailsScreen({
                         onToggle={toggleRewards}
                     />
                 )}
+
 
                 <View style={styles.actionButtons}>
                     <Button
@@ -140,6 +201,13 @@ export default function StoreDetailsScreen({
                     </Button>
                 </View>
             </ScrollView>
+            <TodayOfferModal
+                visible={showTodayModal}
+                onClose={() => setShowTodayModal(false)}
+                setRedemptionCode={setRedemptionCode}
+                setRedemptionStatus={setRedemptionStatus}
+                sellerId={storeId}
+            />
         </SafeAreaView>
     );
 }
@@ -167,6 +235,7 @@ export const styles = StyleSheet.create({
     },
     scrollView: {
         flex: 1,
+        paddingTop: 24
     },
     scrollContent: {
         paddingHorizontal: 20,
@@ -179,4 +248,26 @@ export const styles = StyleSheet.create({
         marginTop: 24,
         gap: 12,
     },
+    codeBox: {
+        padding: 16,
+        borderRadius: 12,
+        backgroundColor: "#111827",
+        gap: 10
+    },
+    codeText: {
+        fontSize: 22,
+        fontWeight: "800",
+        letterSpacing: 2,
+        textAlign: "center",
+        marginBottom: 10
+    },
+    codeLabel: {
+        fontSize: 18,
+        textAlign: 'center',
+        marginBottom: 8
+    },
+    codeHint: {
+        fontSize: 12,
+        marginBottom: 5
+    }
 });

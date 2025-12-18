@@ -85,7 +85,9 @@ function CustomDrawerContent() {
             icon="home"
             onPress={() => router.push("/(drawer)/(tabs)/home")}
           />
-          <MenuItem label="Redemption History" icon="history" onPress={() => router.push("/(drawer)/redeem/redemption-history")} />
+          <MenuItem label="Redemptions" icon="history" onPress={() => router.push("/(drawer)/redeem/redemption-history")} />
+
+          <MenuItem label="Perks" icon="gift" onPress={() => router.push("/(drawer)/perks-history")} />
 
           <MenuItem label="Pofile" icon="account" onPress={() => router.push("/(drawer)/profile")} />
 
