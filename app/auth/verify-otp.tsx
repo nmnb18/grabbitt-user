@@ -4,27 +4,32 @@ import { TextInput, Button } from "react-native-paper";
 import * as Location from "expo-location";
 import axios from "axios";
 import { useRouter, useLocalSearchParams } from "expo-router";
-import { auth, PhoneAuthProvider, signInWithCredential } from "@/config/firebase";
+import auth from "@react-native-firebase/auth";
+import api from "@/services/axiosInstance";
 
 export default function UserVerifyOtp() {
     const [otp, setOtp] = useState("");
     const [loading, setLoading] = useState(false);
 
-    const { verificationId, phone } = useLocalSearchParams();
+    const params = useLocalSearchParams();
     const router = useRouter();
 
     const submitOTP = async () => {
         try {
             setLoading(true);
 
-            // 1️⃣ Convert OTP to Firebase Credential
-            const credential = PhoneAuthProvider.credential(
-                verificationId as string,
-                otp
-            );
+            if (!otp) {
+                Alert.alert("Error", "Enter OTP");
+                return;
+            }
 
-            const result = await signInWithCredential(auth, credential);
-            const uid = result.user.uid;
+            const confirmation = JSON.parse(params.confirmation as string);
+
+            // 1️⃣ Convert OTP to Firebase Credential
+            const result = await confirmation.confirm(otp);
+
+            // 2️⃣ Get Firebase ID token
+            const firebaseIdToken = await result.user.getIdToken();
 
             // 2️⃣ Get Location (Mandatory)
             const { status } = await Location.requestForegroundPermissionsAsync();
@@ -36,24 +41,14 @@ export default function UserVerifyOtp() {
             const loc = await Location.getCurrentPositionAsync({});
 
             // 3️⃣ Send to backend to ensure user exists
-            const userCheck = await axios.post(
-                "https://YOUR_DOMAIN/checkUserOrCreateUser",
+            await axios.post(
+                "/phoneLogin",
                 {
-                    phone,
+                    firebaseIdToken,
                     latitude: loc.coords.latitude,
                     longitude: loc.coords.longitude,
                 }
             );
-
-            // 4️⃣ Generate custom backend token for JWT-based API
-            const jwtRes = await axios.post(
-                "https://YOUR_DOMAIN/createJwtForPhoneUser",
-                { uid }
-            );
-
-            // 5️⃣ Login inside your auth store
-            // e.g. save jwtRes.data.customToken to storage
-
             router.replace("/(drawer)");
         } catch (err: any) {
             Alert.alert("OTP Error", err.message);

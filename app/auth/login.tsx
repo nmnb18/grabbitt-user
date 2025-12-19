@@ -12,8 +12,7 @@ import {
 } from "react-native";
 import { Surface, TextInput, SegmentedButtons } from "react-native-paper";
 import { useAuthStore } from "@/store/authStore";
-import { PhoneAuthProvider } from "firebase/auth";
-import { auth } from "@/config/firebase";
+import auth from "@react-native-firebase/auth";
 
 export default function UserLogin() {
   const [mode, setMode] = useState<"email" | "phone">("email");
@@ -58,24 +57,19 @@ export default function UserLogin() {
   // PHONE LOGIN HANDLER
   //---------------------------------------------------------
   const handleSendOTP = async () => {
-    if (!phone.startsWith("+")) {
-      Alert.alert("Error", "Phone must include country code, e.g. +91");
+    if (!phone || phone?.length !== 10) {
+      Alert.alert("Error", "Please enter valid 10 digit phone number.");
       return;
     }
 
     try {
       setLoading(true);
 
-      const provider = new PhoneAuthProvider(auth);
-
-      const verificationId = await provider.verifyPhoneNumber(
-        phone,
-        null as any
-      );
+      const confirmation = await auth().signInWithPhoneNumber(phone);
 
       router.push({
         pathname: "/auth/verify-otp",
-        params: { verificationId, phone },
+        params: { confirmation: JSON.stringify(confirmation) },
       });
 
     } catch (error: any) {
