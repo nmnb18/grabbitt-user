@@ -28,7 +28,7 @@ export default function UserLogin() {
   const [loading, setLoading] = useState(false);
 
   const router = useRouter();
-  const { login } = useAuthStore();
+  const { login, setPhoneConfirmation } = useAuthStore();
 
   const theme = useTheme();
   const outlineColor = useThemeColor({}, "outline");
@@ -68,10 +68,9 @@ export default function UserLogin() {
       const phoneWithCountyCode = `+91${phone}`
 
       const confirmation = await auth().signInWithPhoneNumber(phoneWithCountyCode);
-
+      setPhoneConfirmation(confirmation);
       router.push({
-        pathname: "/auth/verify-otp",
-        params: { confirmation: JSON.stringify(confirmation) },
+        pathname: "/auth/verify-otp"
       });
 
     } catch (error: any) {

@@ -13,6 +13,9 @@ interface AuthStore {
   user: User | null;
   loading: boolean;
   idToken: string | null;
+  phoneConfirmation: any | null;
+  setPhoneConfirmation: (c: any) => void;
+  clearPhoneConfirmation: () => void;
   setUser: (user: User | null) => void;
   register: (payload: UserPayload) => Promise<void>;
   login: (
@@ -29,6 +32,9 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
   user: null,
   loading: false,
   idToken: null,
+  phoneConfirmation: null,
+  setPhoneConfirmation: (c) => set({ phoneConfirmation: c }),
+  clearPhoneConfirmation: () => set({ phoneConfirmation: null }),
   setUser: (user) => set({ user }),
 
   register: async (payload: UserPayload) => {

@@ -9,13 +9,14 @@ import { Button } from "@/components/ui/paper-button";
 import { GradientText } from "@/components/ui/gradient-text";
 import AuthScreenWrapper from "@/components/wrappers/authScreenWrapper";
 import { AppStyles } from "@/utils/theme";
+import { useAuthStore } from "@/store/authStore";
 
 export default function UserVerifyOtp() {
     const [otp, setOtp] = useState("");
     const [loading, setLoading] = useState(false);
+    const { phoneConfirmation, clearPhoneConfirmation } = useAuthStore();
     const theme = useTheme();
 
-    const params = useLocalSearchParams();
     const router = useRouter();
 
     const submitOTP = async () => {
@@ -27,10 +28,16 @@ export default function UserVerifyOtp() {
                 return;
             }
 
-            const confirmation = JSON.parse(params.confirmation as string);
+            if (!phoneConfirmation) {
+                Alert.alert("Error", "OTP session expired. Please retry.");
+                router.replace("/auth/login");
+                return;
+            }
 
             // 1️⃣ Convert OTP to Firebase Credential
-            const result = await confirmation.confirm(otp);
+            const result = await phoneConfirmation.confirm(otp);
+
+            clearPhoneConfirmation();
 
             // 2️⃣ Get Firebase ID token
             const firebaseIdToken = await result.user.getIdToken();
@@ -71,7 +78,7 @@ export default function UserVerifyOtp() {
                 elevation={2}
             >
                 <GradientText style={styles.gradientTitle}>Verify OTP</GradientText>
-                <View style={{ padding: 20 }}>
+                <View style={{ gap: 20 }}>
                     <TextInput
                         label="Enter OTP"
                         value={otp}
@@ -80,7 +87,7 @@ export default function UserVerifyOtp() {
                         keyboardType="phone-pad"
                         autoCapitalize="none"
                         style={[{ backgroundColor: theme.colors.surface }]}
-                        left={<TextInput.Icon icon="phone" color={theme.colors.onSurface} />}
+                        left={<TextInput.Icon icon="eye" color={theme.colors.onSurface} />}
                         outlineColor={theme.colors.outline}
                         activeOutlineColor={theme.colors.onSurface}
                         theme={{
