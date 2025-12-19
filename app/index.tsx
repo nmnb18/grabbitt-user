@@ -8,7 +8,7 @@ import { useAuthStore } from '../store/authStore';
 
 export default function Index() {
   const router = useRouter();
-  const { user, loading, loadUser, refreshToken } = useAuthStore();
+  const { user, loading, loadUser } = useAuthStore();
 
   useEffect(() => {
     const initAuth = async () => {
@@ -32,12 +32,6 @@ export default function Index() {
     }
   }, [user, loading]);
 
-  useEffect(() => {
-    const interval = setInterval(() => {
-      refreshToken();
-    }, 45 * 60 * 1000); // every 45 min
-    return () => clearInterval(interval);
-  }, []);
 
   return (
     <LinearGradient

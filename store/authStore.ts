@@ -26,6 +26,11 @@ interface AuthStore {
   logout: (uid: string) => Promise<void>;
   loadUser: () => Promise<void>;
   refreshToken: () => Promise<string | null>;
+  loginWithPhone: (
+    uid: string,
+    firebaseIdToken: string,
+    location: { latitude: number; longitude: number }
+  ) => Promise<void>;
 }
 
 export const useAuthStore = create<AuthStore>((set, get) => ({
@@ -195,4 +200,57 @@ export const useAuthStore = create<AuthStore>((set, get) => ({
       return null;
     }
   },
+  loginWithPhone: async (uid, firebaseIdToken, location) => {
+    try {
+      set({ loading: true });
+
+      // 1️⃣ Ensure backend user + profile exists
+      await axios.post(
+        `${API_URL}/phoneLogin`,
+        {
+          firebaseIdToken,
+          latitude: location.latitude,
+          longitude: location.longitude,
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${firebaseIdToken}`,
+          },
+        }
+      );
+
+      // 2️⃣ Fetch full user profile (same as email login)
+      const details = await axios.get(
+        `${API_URL}/getUserDetails?uid=${uid}`,
+        {
+          headers: {
+            Authorization: `Bearer ${firebaseIdToken}`,
+          },
+        }
+      );
+
+      const fullUser: User = {
+        success: true,
+        uid,
+        idToken: firebaseIdToken,
+        refreshToken: null,
+        user: details.data.user,
+      };
+
+      // 3️⃣ Persist session
+      await AsyncStorage.setItem("user", JSON.stringify(fullUser));
+
+      set({
+        user: fullUser,
+        idToken: firebaseIdToken,
+        loading: false,
+      });
+
+    } catch (err: any) {
+      set({ loading: false });
+      console.error("Phone login error:", err.response?.data || err.message);
+      throw new Error("Phone login failed");
+    }
+  },
+
 }));

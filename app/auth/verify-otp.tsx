@@ -14,7 +14,7 @@ import { useAuthStore } from "@/store/authStore";
 export default function UserVerifyOtp() {
     const [otp, setOtp] = useState("");
     const [loading, setLoading] = useState(false);
-    const { phoneConfirmation, clearPhoneConfirmation } = useAuthStore();
+    const { phoneConfirmation, clearPhoneConfirmation, loginWithPhone } = useAuthStore();
     const theme = useTheme();
 
     const router = useRouter();
@@ -52,14 +52,10 @@ export default function UserVerifyOtp() {
             const loc = await Location.getCurrentPositionAsync({});
 
             // 3️⃣ Send to backend to ensure user exists
-            await axios.post(
-                "/phoneLogin",
-                {
-                    firebaseIdToken,
-                    latitude: loc.coords.latitude,
-                    longitude: loc.coords.longitude,
-                }
-            );
+            await loginWithPhone(result.user.uid, firebaseIdToken, {
+                latitude: loc.coords.latitude,
+                longitude: loc.coords.longitude,
+            });
             router.replace("/(drawer)");
         } catch (err: any) {
             Alert.alert("OTP Error", err.message);
@@ -100,6 +96,10 @@ export default function UserVerifyOtp() {
                     />
                     <Button variant="contained" loading={loading} onPress={submitOTP}>
                         Verify & Login
+                    </Button>
+
+                    <Button variant="text" onPress={() => router.push("/auth/login")}>
+                        Back to Login
                     </Button>
                 </View>
             </Surface></AuthScreenWrapper>

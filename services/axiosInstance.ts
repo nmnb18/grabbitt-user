@@ -1,4 +1,5 @@
 import { useAuthStore } from '@/store/authStore';
+import auth from '@react-native-firebase/auth'
 import axios from 'axios';
 import Constants from 'expo-constants';
 
@@ -14,14 +15,24 @@ const api = axios.create({
 // 🔄 Interceptor to refresh token if needed
 api.interceptors.request.use(
     async (config) => {
-        const { refreshToken, idToken } = useAuthStore.getState();
+        let token: string | null = null;
 
-        let token = idToken;
-        try {
-            const fresh = await refreshToken();
-            if (fresh) token = fresh;
-        } catch (err) {
-            console.warn('Token refresh failed before request', err);
+        const firebaseUser = auth().currentUser;
+
+        if (firebaseUser) {
+            // SDK-based login (phone or future email)
+            token = await firebaseUser.getIdToken();
+        } else {
+            const store = useAuthStore.getState();
+            token = store.idToken;
+
+            if (store.refreshToken) {
+                try {
+                    const fresh = await store.refreshToken();
+                    if (fresh) token = fresh;
+                } catch {
+                }
+            }
         }
 
         if (token) {

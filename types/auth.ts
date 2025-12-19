@@ -53,7 +53,7 @@ export interface LoginResponse {
     success: boolean;
     uid: string;
     idToken: string;
-    refreshToken: string;
+    refreshToken: string | null;
     user: AppUser;
 }
 
