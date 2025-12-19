@@ -65,7 +65,9 @@ export default function UserLogin() {
     try {
       setLoading(true);
 
-      const confirmation = await auth().signInWithPhoneNumber(phone);
+      const phoneWithCountyCode = `+91${phone}`
+
+      const confirmation = await auth().signInWithPhoneNumber(phoneWithCountyCode);
 
       router.push({
         pathname: "/auth/verify-otp",
