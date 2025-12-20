@@ -61,7 +61,7 @@ export function StorePointsList({ balances }: StorePointsListProps) {
                                         {store.points}
                                     </Text>
                                     <Text style={[styles.pointsLabel, { color: theme.colors.onSurface }]}>
-                                        points
+                                        POINTS
                                     </Text>
                                 </View>
 

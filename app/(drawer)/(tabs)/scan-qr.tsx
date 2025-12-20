@@ -27,7 +27,7 @@ export default function UserScanQR() {
   const { user } = useAuthStore();
   const theme = useTheme();
   const router = useRouter();
-  const { primary, onPrimary, surface, outline } = theme.colors;
+  const { primary, text, surface, outline } = theme.colors;
 
   // State
   const [cameraPermission, requestCameraPermission] = useCameraPermissions();
@@ -175,7 +175,7 @@ export default function UserScanQR() {
       <PermissionView
         onRequestPermission={requestCameraPermission}
         primary={primary}
-        onPrimary={onPrimary}
+        onPrimary={text}
       />
     );
   }
@@ -187,7 +187,7 @@ export default function UserScanQR() {
         onGrantPermission={handleRequestLocationPermission}
         onSkip={handleSkipLocation}
         primary={primary}
-        onPrimary={onPrimary}
+        onPrimary={text}
         checking={checkingLocation}
       />
     );

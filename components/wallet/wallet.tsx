@@ -7,7 +7,7 @@ import { TotalPointsCard } from "./total-points-card";
 import { EmptyState } from "./empty-state";
 import { StorePointsList } from "./store-points-list";
 import { RecentActivity } from "./recent-activity";
-import { Text } from "react-native-paper";
+import { SegmentedButtons, Text } from "react-native-paper";
 
 interface WalletScreenProps {
     walletData: WalletData;
@@ -47,53 +47,22 @@ export function WalletScreen({
                     styles.tabs,
                     { backgroundColor: tabBackground }
                 ]}>
-                    <TouchableOpacity
-                        onPress={() => setTab('balance')}
-                        style={[
-                            styles.tab,
-                            tab === 'balance' && {
-                                backgroundColor: theme.colors.surface,
-                                elevation: 2
-                            }
+                    <SegmentedButtons
+                        value={tab}
+                        onValueChange={(value) => setTab(value as "balance" | "activity")}
+                        buttons={[
+                            { value: "balance", label: "Points by Store", icon: "star" },
+                            { value: "activity", label: "Recent Activity", icon: "menu" },
                         ]}
-                    >
-                        <Text
-                            style={[
-                                styles.tabText,
-                                { color: inactiveTextColor },
-                                tab === 'balance' && {
-                                    color: activeTextColor,
-                                    fontWeight: '700'
-                                }
-                            ]}
-                        >
-                            Points by Store
-                        </Text>
-                    </TouchableOpacity>
+                        style={{ marginBottom: 20, width: '100%' }}
+                        theme={{
+                            colors: {
+                                secondaryContainer: theme.colors.tertiary,
+                                onSecondaryContainer: "#fff",
+                            },
+                        }}
+                    />
 
-                    <TouchableOpacity
-                        onPress={() => setTab('activity')}
-                        style={[
-                            styles.tab,
-                            tab === 'activity' && {
-                                backgroundColor: theme.colors.surface,
-                                elevation: 2
-                            }
-                        ]}
-                    >
-                        <Text
-                            style={[
-                                styles.tabText,
-                                { color: inactiveTextColor },
-                                tab === 'activity' && {
-                                    color: activeTextColor,
-                                    fontWeight: '700'
-                                }
-                            ]}
-                        >
-                            Recent Activity
-                        </Text>
-                    </TouchableOpacity>
                 </View>
 
                 {tab === 'balance' ? walletData.balances.length === 0 ? (

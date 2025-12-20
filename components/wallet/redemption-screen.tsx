@@ -141,7 +141,7 @@ export default function RedemptionScreen({
                                                         {offer.reward_points} pts
                                                     </Text>
                                                 </View>
-                                                <Text style={[styles.offerDescription, { color: theme.colors.accent }]}>
+                                                <Text style={[styles.offerDescription, { color: theme.colors.onBackground }]}>
                                                     {offer.reward_description}
                                                 </Text>
                                             </View>

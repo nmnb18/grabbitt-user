@@ -89,7 +89,7 @@ function CustomDrawerContent() {
 
           <MenuItem label="Perks" icon="gift" onPress={() => router.push("/(drawer)/perks-history")} />
 
-          <MenuItem label="Pofile" icon="account" onPress={() => router.push("/(drawer)/profile")} />
+          <MenuItem label="Profile" icon="account" onPress={() => router.push("/(drawer)/profile")} />
 
           <MenuItem label="Contact Us" icon="mail" onPress={() => Linking.openURL("mailto:support@grabbitt.in")} />
 

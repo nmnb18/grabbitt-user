@@ -29,9 +29,7 @@ export default function RedemptionHistoryScreen({ stats, redemptions, onRefresh 
     const theme = useTheme();
     const router = useRouter();
 
-    const [allRedemptions, setAllRedemptions] = useState<RedemptionHistoryItem[]>([]);
     const [filteredRedemptions, setFilteredRedemptions] = useState<RedemptionHistoryItem[]>([]);
-    const [loading, setLoading] = useState(true);
     const [refreshing, setRefreshing] = useState(false);
     const [filter, setFilter] = useState<'all' | 'pending' | 'redeemed' | 'cancelled' | 'expired'>('all');
 
@@ -290,7 +288,7 @@ export default function RedemptionHistoryScreen({ stats, redemptions, onRefresh 
                                 <Surface
                                     style={[
                                         styles.redemptionCard,
-                                        { backgroundColor: theme.colors.backdrop, opacity: loadingQR === redemption.redemption_id ? 0.2 : 1 }
+                                        { backgroundColor: theme.colors.surfaceVariant, opacity: loadingQR === redemption.redemption_id ? 0.2 : 1 }
                                     ]}
                                 >
                                     {/* Card Header */}

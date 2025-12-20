@@ -8,7 +8,7 @@ import React, { useState } from "react";
 import { Alert, StyleSheet, View } from "react-native";
 import { Surface, TextInput, SegmentedButtons } from "react-native-paper";
 import { useAuthStore } from "@/store/authStore";
-import auth from "@react-native-firebase/auth";
+//import auth from "@react-native-firebase/auth";
 
 export default function UserLogin() {
   const [mode, setMode] = useState<"email" | "phone">("email");
@@ -52,30 +52,30 @@ export default function UserLogin() {
   //---------------------------------------------------------
   // PHONE LOGIN HANDLER
   //---------------------------------------------------------
-  const handleSendOTP = async () => {
-    if (!phone || phone?.length !== 10) {
-      Alert.alert("Error", "Please enter valid 10 digit phone number.");
-      return;
-    }
+  // const handleSendOTP = async () => {
+  //   if (!phone || phone?.length !== 10) {
+  //     Alert.alert("Error", "Please enter valid 10 digit phone number.");
+  //     return;
+  //   }
 
-    try {
-      setLoading(true);
+  //   try {
+  //     setLoading(true);
 
-      const phoneWithCountyCode = `+91${phone}`;
+  //     const phoneWithCountyCode = `+91${phone}`;
 
-      const confirmation = await auth().signInWithPhoneNumber(
-        phoneWithCountyCode
-      );
-      setPhoneConfirmation(confirmation);
-      router.push({
-        pathname: "/auth/verify-otp",
-      });
-    } catch (error: any) {
-      Alert.alert("OTP Error", error.message);
-    } finally {
-      setLoading(false);
-    }
-  };
+  //     const confirmation = await auth().signInWithPhoneNumber(
+  //       phoneWithCountyCode
+  //     );
+  //     setPhoneConfirmation(confirmation);
+  //     router.push({
+  //       pathname: "/auth/verify-otp",
+  //     });
+  //   } catch (error: any) {
+  //     Alert.alert("OTP Error", error.message);
+  //   } finally {
+  //     setLoading(false);
+  //   }
+  // };
 
   //---------------------------------------------------------
   // MAIN RENDER
@@ -226,7 +226,7 @@ export default function UserLogin() {
                 }}
               />
 
-              <Button
+              {/* <Button
                 onPress={handleSendOTP}
                 loading={loading}
                 variant="contained"
@@ -234,7 +234,7 @@ export default function UserLogin() {
                 fullWidth
               >
                 Send OTP
-              </Button>
+              </Button> */}
 
               <Button
                 onPress={() => router.push("/auth/register")}

@@ -278,7 +278,7 @@ export default function RedemptionQRScreen() {
                 </View>
 
                 {/* Redemption Details */}
-                <Surface style={[styles.detailsCard, { backgroundColor: theme.colors.backdrop }]}>
+                <Surface style={[styles.detailsCard, { backgroundColor: theme.colors.surfaceVariant }]}>
                     <Text style={[styles.detailsTitle, { color: theme.colors.onSurface }]}>
                         Redemption Details
                     </Text>

@@ -98,7 +98,7 @@ export default function UserHome({
                     onChangeText={setSearch}
                     value={search}
                     iconColor={theme.colors.onSurface}
-                    style={[styles.searchBar, { backgroundColor: theme.colors.surface }]}
+                    style={[styles.searchBar, { backgroundColor: theme.colors.surfaceVariant }]}
                 />
 
                 {/* Categories */}
@@ -199,7 +199,7 @@ export default function UserHome({
                                         </Surface>
 
                                         <View style={styles.titleBlock}>
-                                            <Text style={styles.storeName}>{seller.shop_name}</Text>
+                                            <Text style={[styles.storeName, { color: theme.colors.onPrimary }]}>{seller.shop_name}</Text>
 
 
                                         </View>
@@ -231,7 +231,7 @@ export default function UserHome({
                                                 size={18}
                                                 color={theme.colors.accent}
                                             />
-                                            <Text style={[{ color: theme.colors.onSurfaceDisabled }]}>{seller.address}</Text>
+                                            <Text style={[{ color: theme.colors.onSurface }]}>{seller.address}</Text>
                                         </View>
                                         <View style={styles.contactItem}>
                                             <MaterialCommunityIcons
@@ -239,12 +239,12 @@ export default function UserHome({
                                                 size={18}
                                                 color={theme.colors.accent}
                                             />
-                                            <Text style={[{ color: theme.colors.onSurfaceDisabled }]}>{seller.phone}</Text>
+                                            <Text style={[{ color: theme.colors.onSurface }]}>{seller.phone}</Text>
 
                                         </View>
                                     </View>
 
-                                    <View style={[styles.actionRow, { borderColor: theme.colors.accent }]}>
+                                    <View style={[styles.actionRow, { borderColor: theme.colors.outline }]}>
 
 
                                         <View style={styles.actionBtn}>
@@ -257,7 +257,7 @@ export default function UserHome({
                                                 {seller.reward_points} pts
                                             </Text>
                                         </View>
-                                        <View style={[styles.actionBtn, { borderColor: theme.colors.accent, borderLeftWidth: 1 }]}>
+                                        <View style={[styles.actionBtn, { borderColor: theme.colors.outline, borderLeftWidth: 1 }]}>
                                             <MaterialCommunityIcons
                                                 name="eye-outline"
                                                 size={18}
@@ -333,7 +333,7 @@ const styles = StyleSheet.create({
 
     bannerOverlay: {
         ...StyleSheet.absoluteFillObject,
-        backgroundColor: "rgba(0,0,0,0.55)",
+        backgroundColor: "rgba(0,0,0,0.30)",
     },
 
     /* Top row */

@@ -1,46 +1,36 @@
-import { useAuthStore } from "@/store/authStore";
-import auth from "@react-native-firebase/auth";
-import axios from "axios";
-import Constants from "expo-constants";
+import { useAuthStore } from '@/store/authStore';
+import axios from 'axios';
+import Constants from 'expo-constants';
 
 const API_URL =
-  Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL ||
-  process.env.EXPO_PUBLIC_BACKEND_URL;
+    Constants.expoConfig?.extra?.EXPO_PUBLIC_BACKEND_URL ||
+    process.env.EXPO_PUBLIC_BACKEND_URL;
 
 const api = axios.create({
-  baseURL: API_URL,
-  timeout: 15000,
+    baseURL: API_URL,
+    timeout: 15000,
 });
 
 // 🔄 Interceptor to refresh token if needed
 api.interceptors.request.use(
-  async (config) => {
-    let token: string | null = null;
+    async (config) => {
+        const { refreshToken, idToken } = useAuthStore.getState();
 
-    const firebaseUser = auth().currentUser;
-
-    if (firebaseUser) {
-      // SDK-based login (phone or future email)
-      token = await firebaseUser.getIdToken();
-    } else {
-      const store = useAuthStore.getState();
-      token = store.idToken;
-
-      if (store.refreshToken) {
+        let token = idToken;
         try {
-          const fresh = await store.refreshToken();
-          if (fresh) token = fresh;
-        } catch {}
-      }
-    }
+            const fresh = await refreshToken();
+            if (fresh) token = fresh;
+        } catch (err) {
+            console.warn('Token refresh failed before request', err);
+        }
 
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
+        if (token) {
+            config.headers.Authorization = `Bearer ${token}`;
+        }
 
-    return config;
-  },
-  (error) => Promise.reject(error)
+        return config;
+    },
+    (error) => Promise.reject(error)
 );
 
 export default api;

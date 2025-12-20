@@ -45,7 +45,7 @@ export function TotalPointsCard({ stats, storeCount }: TotalPointsCardProps) {
 
                             { backgroundColor: theme.colors.text, borderWidth: 1 }
                         ]}
-                        textStyle={{ fontWeight: '600' }}
+                        textStyle={{ fontWeight: '600', color: theme.colors.primary }}
                     >
                         {`${stats?.points_wating_redeem || 0}`}
                     </Chip>
@@ -55,7 +55,7 @@ export function TotalPointsCard({ stats, storeCount }: TotalPointsCardProps) {
 
                             { backgroundColor: theme.colors.text, borderWidth: 1 }
                         ]}
-                        textStyle={{ fontWeight: '600' }}
+                        textStyle={{ fontWeight: '600', color: theme.colors.primary }}
                     >
                         {`${stats?.available_points || 0}`}
                     </Chip>
@@ -65,7 +65,7 @@ export function TotalPointsCard({ stats, storeCount }: TotalPointsCardProps) {
 
                             { backgroundColor: theme.colors.text, borderWidth: 1 }
                         ]}
-                        textStyle={{ fontWeight: '600' }}
+                        textStyle={{ fontWeight: '600', color: theme.colors.primary }}
                     >
                         {`${stats?.total_points_redeem || 0}`}
                     </Chip>

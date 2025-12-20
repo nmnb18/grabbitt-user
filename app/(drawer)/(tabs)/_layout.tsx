@@ -18,14 +18,17 @@ import { AppStyles } from "@/utils/theme";
 export default function UserTabsLayout() {
   const theme = useTheme();
   const colorScheme = useColorScheme();
-  const headerGradient = AppStyles.gradients.headerDark;
+  const headerGradient =
+    colorScheme === "dark"
+      ? AppStyles.gradients.headerDark
+      : AppStyles.gradients.headerLight;
   const navigation = useNavigation<any>();
   const backgroundColor = useThemeColor({}, "background");
   const { user } = useAuthStore();
   return (
     <Tabs
       screenOptions={{
-        header: ({}) => (
+        header: ({ }) => (
           <LinearGradient
             colors={headerGradient}
             start={{ x: 0, y: 0 }}
