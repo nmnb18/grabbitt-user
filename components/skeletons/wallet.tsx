@@ -57,7 +57,6 @@ const styles = StyleSheet.create({
         marginHorizontal: 16,
         marginTop: 24,
         borderRadius: 22,
-        overflow: 'hidden',
     },
     totalCardContent: {
         height: 180,
@@ -76,7 +75,6 @@ const styles = StyleSheet.create({
     },
     storeCard: {
         borderRadius: 16,
-        overflow: 'hidden',
     },
     storeCardInner: {
         flexDirection: 'row',

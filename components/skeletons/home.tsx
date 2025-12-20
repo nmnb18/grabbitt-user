@@ -135,7 +135,6 @@ const styles = StyleSheet.create({
     },
     storeCard: {
         borderRadius: 18,
-        overflow: "hidden",
     },
 
     /* Banner */
