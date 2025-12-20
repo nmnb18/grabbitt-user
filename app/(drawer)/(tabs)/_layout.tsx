@@ -4,7 +4,13 @@ import { Ionicons } from "@expo/vector-icons";
 import { DrawerActions, useNavigation } from "@react-navigation/native";
 import { Tabs } from "expo-router";
 import React from "react";
-import { View, Text, TouchableOpacity, Platform, useColorScheme } from "react-native";
+import {
+  View,
+  Text,
+  TouchableOpacity,
+  Platform,
+  useColorScheme,
+} from "react-native";
 import { LinearGradient } from "expo-linear-gradient";
 import { useAuthStore } from "@/store/authStore";
 import { AppStyles } from "@/utils/theme";
@@ -12,17 +18,14 @@ import { AppStyles } from "@/utils/theme";
 export default function UserTabsLayout() {
   const theme = useTheme();
   const colorScheme = useColorScheme();
-  const headerGradient =
-    colorScheme === "dark"
-      ? AppStyles.gradients.headerDark
-      : AppStyles.gradients.headerLight;
+  const headerGradient = AppStyles.gradients.headerDark;
   const navigation = useNavigation<any>();
   const backgroundColor = useThemeColor({}, "background");
   const { user } = useAuthStore();
   return (
     <Tabs
       screenOptions={{
-        header: ({ }) => (
+        header: ({}) => (
           <LinearGradient
             colors={headerGradient}
             start={{ x: 0, y: 0 }}

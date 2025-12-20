@@ -5,39 +5,31 @@ import { Button } from "@/components/ui/paper-button";
 import { useTheme } from "@/hooks/use-theme-color";
 
 interface ContactButtonsProps {
-    onCall: () => void;
-    onGetDirections: () => void;
+  onCall: () => void;
+  onGetDirections: () => void;
 }
 
 export const ContactButtons: React.FC<ContactButtonsProps> = ({
-    onCall,
-    onGetDirections,
+  onCall,
+  onGetDirections,
 }) => {
-
-    return (
-        <View style={styles.contactRow}>
-            <Button
-                variant="outlined"
-                icon="phone"
-                onPress={onCall}
-            >
-                Call Store
-            </Button>
-            <Button
-                variant="outlined"
-                icon="directions"
-                onPress={onGetDirections}
-            >
-                Get Directions
-            </Button>
-        </View>
-    );
+  return (
+    <View style={styles.contactRow}>
+      <Button variant="outlined" icon="phone" onPress={onCall}>
+        Call Store
+      </Button>
+      <Button variant="outlined" icon="directions" onPress={onGetDirections}>
+        Directions
+      </Button>
+    </View>
+  );
 };
 
 const styles = StyleSheet.create({
-    contactRow: {
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        marginBottom: 32,
-    },
+  contactRow: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginBottom: 32,
+    gap: 16,
+  },
 });

@@ -5,11 +5,7 @@ import { useTheme, useThemeColor } from "@/hooks/use-theme-color";
 import { AppStyles } from "@/utils/theme";
 import { useRouter } from "expo-router";
 import React, { useState } from "react";
-import {
-  Alert,
-  StyleSheet,
-  View
-} from "react-native";
+import { Alert, StyleSheet, View } from "react-native";
 import { Surface, TextInput, SegmentedButtons } from "react-native-paper";
 import { useAuthStore } from "@/store/authStore";
 import auth from "@react-native-firebase/auth";
@@ -65,14 +61,15 @@ export default function UserLogin() {
     try {
       setLoading(true);
 
-      const phoneWithCountyCode = `+91${phone}`
+      const phoneWithCountyCode = `+91${phone}`;
 
-      const confirmation = await auth().signInWithPhoneNumber(phoneWithCountyCode);
+      const confirmation = await auth().signInWithPhoneNumber(
+        phoneWithCountyCode
+      );
       setPhoneConfirmation(confirmation);
       router.push({
-        pathname: "/auth/verify-otp"
+        pathname: "/auth/verify-otp",
       });
-
     } catch (error: any) {
       Alert.alert("OTP Error", error.message);
     } finally {
@@ -98,7 +95,7 @@ export default function UserLogin() {
         <GradientText style={styles.gradientTitle}>Login</GradientText>
 
         {/* Mode Toggle */}
-        <SegmentedButtons
+        {/* <SegmentedButtons
           value={mode}
           onValueChange={(value) => setMode(value as "email" | "phone")}
           buttons={[
@@ -106,8 +103,13 @@ export default function UserLogin() {
             { value: "phone", label: "Phone OTP", icon: "phone" },
           ]}
           style={{ marginBottom: 20 }}
-          theme={{ colors: { secondaryContainer: theme.colors.primary, onSecondaryContainer: '#fff' } }}
-        />
+          theme={{
+            colors: {
+              secondaryContainer: theme.colors.primary,
+              onSecondaryContainer: "#fff",
+            },
+          }}
+        /> */}
 
         <View style={styles.form}>
           {mode === "email" ? (
@@ -118,9 +120,15 @@ export default function UserLogin() {
                 onChangeText={setEmail}
                 mode="outlined"
                 keyboardType="email-address"
+                placeholder="Email"
                 autoCapitalize="none"
-                left={<TextInput.Icon icon="email" color={theme.colors.onSurface} />}
-                style={[styles.input, { backgroundColor: theme.colors.surface }]}
+                left={
+                  <TextInput.Icon icon="email" color={theme.colors.onSurface} />
+                }
+                style={[
+                  styles.input,
+                  { backgroundColor: theme.colors.surface },
+                ]}
                 outlineColor={theme.colors.outline}
                 activeOutlineColor={theme.colors.onSurface}
                 theme={{
@@ -137,9 +145,15 @@ export default function UserLogin() {
                 value={password}
                 onChangeText={setPassword}
                 secureTextEntry={!showPassword}
+                placeholder="Password"
                 mode="outlined"
-                style={[styles.input, { backgroundColor: theme.colors.surface }]}
-                left={<TextInput.Icon icon="lock" color={theme.colors.onSurface} />}
+                style={[
+                  styles.input,
+                  { backgroundColor: theme.colors.surface },
+                ]}
+                left={
+                  <TextInput.Icon icon="lock" color={theme.colors.onSurface} />
+                }
                 right={
                   <TextInput.Icon
                     icon={showPassword ? "eye-off" : "eye"}
@@ -194,8 +208,13 @@ export default function UserLogin() {
                 mode="outlined"
                 keyboardType="phone-pad"
                 autoCapitalize="none"
-                style={[styles.input, { backgroundColor: theme.colors.surface }]}
-                left={<TextInput.Icon icon="phone" color={theme.colors.onSurface} />}
+                style={[
+                  styles.input,
+                  { backgroundColor: theme.colors.surface },
+                ]}
+                left={
+                  <TextInput.Icon icon="phone" color={theme.colors.onSurface} />
+                }
                 outlineColor={theme.colors.outline}
                 activeOutlineColor={theme.colors.onSurface}
                 theme={{

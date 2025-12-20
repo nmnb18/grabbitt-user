@@ -12,111 +12,116 @@ import { AppStyles } from "@/utils/theme";
 import { useAuthStore } from "@/store/authStore";
 
 export default function UserVerifyOtp() {
-    const [otp, setOtp] = useState("");
-    const [loading, setLoading] = useState(false);
-    const { phoneConfirmation, clearPhoneConfirmation, loginWithPhone } = useAuthStore();
-    const theme = useTheme();
+  const [otp, setOtp] = useState("");
+  const [loading, setLoading] = useState(false);
+  const { phoneConfirmation, clearPhoneConfirmation, loginWithPhone } =
+    useAuthStore();
+  const theme = useTheme();
 
-    const router = useRouter();
+  const router = useRouter();
 
-    const submitOTP = async () => {
-        try {
-            setLoading(true);
+  const submitOTP = async () => {
+    try {
+      setLoading(true);
 
-            if (!otp) {
-                Alert.alert("Error", "Enter OTP");
-                return;
-            }
+      if (!otp) {
+        Alert.alert("Error", "Enter OTP");
+        return;
+      }
 
-            if (!phoneConfirmation) {
-                Alert.alert("Error", "OTP session expired. Please retry.");
-                router.replace("/auth/login");
-                return;
-            }
+      if (!phoneConfirmation) {
+        Alert.alert("Error", "OTP session expired. Please retry.");
+        router.replace("/auth/login");
+        return;
+      }
 
-            // 1️⃣ Convert OTP to Firebase Credential
-            const result = await phoneConfirmation.confirm(otp);
+      // 1️⃣ Convert OTP to Firebase Credential
+      const result = await phoneConfirmation.confirm(otp);
 
-            clearPhoneConfirmation();
+      clearPhoneConfirmation();
 
-            // 2️⃣ Get Firebase ID token
-            const firebaseIdToken = await result.user.getIdToken();
+      // 2️⃣ Get Firebase ID token
+      const firebaseIdToken = await result.user.getIdToken();
 
-            // 2️⃣ Get Location (Mandatory)
-            const { status } = await Location.requestForegroundPermissionsAsync();
-            if (status !== "granted") {
-                Alert.alert("Error", "Location required");
-                return;
-            }
+      // 2️⃣ Get Location (Mandatory)
+      const { status } = await Location.requestForegroundPermissionsAsync();
+      if (status !== "granted") {
+        Alert.alert("Error", "Location required");
+        return;
+      }
 
-            const loc = await Location.getCurrentPositionAsync({});
+      const loc = await Location.getCurrentPositionAsync({});
 
-            // 3️⃣ Send to backend to ensure user exists
-            await loginWithPhone(result.user.uid, firebaseIdToken, {
-                latitude: loc.coords.latitude,
-                longitude: loc.coords.longitude,
-            });
-            router.replace("/(drawer)");
-        } catch (err: any) {
-            Alert.alert("OTP Error", err.message);
-        } finally {
-            setLoading(false);
-        }
-    };
+      // 3️⃣ Send to backend to ensure user exists
+      await loginWithPhone(result.user.uid, firebaseIdToken, {
+        latitude: loc.coords.latitude,
+        longitude: loc.coords.longitude,
+      });
+      router.replace("/(drawer)");
+    } catch (err: any) {
+      Alert.alert("OTP Error", "Please check the OTP and try again.");
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    return (
-        <AuthScreenWrapper>
-            <Surface
-                style={[
-                    styles.formCard,
-                    { backgroundColor: theme.colors.surface, borderColor: theme.colors.outline },
-                ]}
-                elevation={2}
-            >
-                <GradientText style={styles.gradientTitle}>Verify OTP</GradientText>
-                <View style={{ gap: 20 }}>
-                    <TextInput
-                        label="Enter OTP"
-                        value={otp}
-                        onChangeText={setOtp}
-                        mode="outlined"
-                        keyboardType="phone-pad"
-                        autoCapitalize="none"
-                        style={[{ backgroundColor: theme.colors.surface }]}
-                        left={<TextInput.Icon icon="eye" color={theme.colors.onSurface} />}
-                        outlineColor={theme.colors.outline}
-                        activeOutlineColor={theme.colors.onSurface}
-                        theme={{
-                            ...theme,
-                            colors: {
-                                ...theme.colors,
-                                onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
-                            },
-                        }}
-                    />
-                    <Button variant="contained" loading={loading} onPress={submitOTP}>
-                        Verify & Login
-                    </Button>
+  return (
+    <AuthScreenWrapper>
+      <Surface
+        style={[
+          styles.formCard,
+          {
+            backgroundColor: theme.colors.surface,
+            borderColor: theme.colors.outline,
+          },
+        ]}
+        elevation={2}
+      >
+        <GradientText style={styles.gradientTitle}>Verify OTP</GradientText>
+        <View style={{ gap: 20 }}>
+          <TextInput
+            label="Enter OTP"
+            value={otp}
+            onChangeText={setOtp}
+            mode="outlined"
+            keyboardType="phone-pad"
+            autoCapitalize="none"
+            style={[{ backgroundColor: theme.colors.surface }]}
+            left={<TextInput.Icon icon="eye" color={theme.colors.onSurface} />}
+            outlineColor={theme.colors.outline}
+            activeOutlineColor={theme.colors.onSurface}
+            theme={{
+              ...theme,
+              colors: {
+                ...theme.colors,
+                onSurfaceVariant: theme.colors.onSurfaceDisabled, // 👈 placeholder color source
+              },
+            }}
+          />
+          <Button variant="contained" loading={loading} onPress={submitOTP}>
+            Verify & Login
+          </Button>
 
-                    <Button variant="text" onPress={() => router.push("/auth/login")}>
-                        Back to Login
-                    </Button>
-                </View>
-            </Surface></AuthScreenWrapper>
-    );
+          <Button variant="text" onPress={() => router.push("/auth/login")}>
+            Back to Login
+          </Button>
+        </View>
+      </Surface>
+    </AuthScreenWrapper>
+  );
 }
 
 const styles = StyleSheet.create({
-    formCard: {
-        borderRadius: 12,
-        padding: AppStyles.spacing.lg,
-        borderWidth: 1,
-    },
-    gradientTitle: {
-        fontFamily: "Poppins",
-        fontSize: 24,
-        fontWeight: "600",
-        textAlign: "center",
-        marginBottom: AppStyles.spacing.lg,
-    },
-})
+  formCard: {
+    borderRadius: 12,
+    padding: AppStyles.spacing.lg,
+    borderWidth: 1,
+  },
+  gradientTitle: {
+    fontFamily: "Poppins",
+    fontSize: 24,
+    fontWeight: "600",
+    textAlign: "center",
+    marginBottom: AppStyles.spacing.lg,
+  },
+});
