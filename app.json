@@ -4,7 +4,7 @@
     "slug": "grabbitt",
     "version": "1.0.2",
     "orientation": "portrait",
-    "icon": "./assets/images/favicon.png",
+    "icon": "./assets/images/ios-app-icon.png",
     "scheme": "grabbitt",
     "userInterfaceStyle": "automatic",
     "newArchEnabled": true,
@@ -24,9 +24,9 @@
     "android": {
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
-        "foregroundImage": "./assets/images/android-512.png",
-        "backgroundImage": "./assets/images/android-512.png",
-        "monochromeImage": "./assets/images/android-258.png"
+        "foregroundImage": "./assets/images/playstore.png",
+        "backgroundImage": "./assets/images/playstore.png",
+        "monochromeImage": "./assets/images/258.png"
       },
       "edgeToEdgeEnabled": true,
       "package": "com.grabbitt.user",
