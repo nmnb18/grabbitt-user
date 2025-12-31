@@ -28,7 +28,7 @@ export const RewardsCard: React.FC<RewardsCardProps> = ({
         const percentage = rewards.percentage_value || 1;
         return (
           <Text style={styles.descriptionText}>
-            Earn {percentage}% cashback as points
+            Earn {percentage}% reward points of order value
           </Text>
         );
 

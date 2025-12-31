@@ -130,6 +130,10 @@ export interface SellerBusiness {
     category: string;
     description?: string;
 }
+
+export interface SellerQr {
+    qr_code_type: string;
+}
 // types/store.ts
 export interface StoreDetails {
     user_id: string;
@@ -143,6 +147,7 @@ export interface StoreDetails {
     location: SellerLocation;
     media: SellerMedia;
     rewards: SellerRewards;
+    qr_settings: SellerQr;
     stats: SellerStats;
     created_at: string;
     last_active: string;

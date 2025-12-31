@@ -92,11 +92,11 @@ export default function StoreDetailsScreen({
       const url =
         Platform.OS === "ios"
           ? `http://maps.apple.com/?ll=${lat},${lng}&q=${encodeURIComponent(
-              store.business.shop_name
-            )}`
+            store.business.shop_name
+          )}`
           : `geo:${lat},${lng}?q=${encodeURIComponent(
-              store.business.shop_name
-            )}`;
+            store.business.shop_name
+          )}`;
       Linking.openURL(url);
     }
   };
@@ -173,7 +173,7 @@ export default function StoreDetailsScreen({
 
         <OffersList offers={store.rewards.offers} />
 
-        {store.rewards && (
+        {store.rewards && store.qr_settings.qr_code_type !== 'multiple' && (
           <RewardsCard
             rewards={store.rewards}
             expanded={expandedSections.rewards}

@@ -74,7 +74,7 @@ export default function UserHomeContainer() {
       };
 
       // Small delay to ensure backend has processed the scan
-      const timer = setTimeout(refreshData, 1500);
+      const timer = setTimeout(refreshData, 100);
       return () => clearTimeout(timer);
     }, [loadNearbySellers])
   );
