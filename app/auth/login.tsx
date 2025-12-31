@@ -170,34 +170,36 @@ export default function UserLogin() {
                   },
                 }}
               />
+              <View style={{ gap: 20, marginTop: 40 }}>
+                <Button
+                  onPress={handleEmailLogin}
+                  loading={loading}
+                  variant="contained"
+                  size="medium"
+                  fullWidth
+                >
+                  Login
+                </Button>
 
-              <Button
-                onPress={handleEmailLogin}
-                loading={loading}
-                variant="contained"
-                size="medium"
-                fullWidth
-              >
-                Login
-              </Button>
+                <Button
+                  onPress={() => router.push("/auth/register")}
+                  variant="text"
+                  size="medium"
+                  fullWidth
+                >
+                  Don’t have an account? Register
+                </Button>
 
-              <Button
-                onPress={() => router.push("/auth/register")}
-                variant="text"
-                size="medium"
-                fullWidth
-              >
-                Don’t have an account? Register
-              </Button>
+                <Button
+                  onPress={() => router.push("/auth/forgot-password")}
+                  variant="text"
+                  size="medium"
+                  fullWidth
+                >
+                  Forgot Password?
+                </Button>
+              </View>
 
-              <Button
-                onPress={() => router.push("/auth/forgot-password")}
-                variant="text"
-                size="medium"
-                fullWidth
-              >
-                Forgot Password?
-              </Button>
             </>
           ) : (
             <>

@@ -365,13 +365,16 @@ export default function UserRegister() {
                     </HelperText>
 
                     {/* SUBMIT */}
-                    <Button variant="contained" loading={loading} onPress={handleRegister}>
-                        Create Account
-                    </Button>
+                    <View style={{ gap: 20 }}>
+                        <Button variant="contained" loading={loading} onPress={handleRegister}>
+                            Create Account
+                        </Button>
 
-                    <Button variant="text" onPress={() => router.push("/auth/login")}>
-                        Already have an account? Login
-                    </Button>
+                        <Button variant="text" onPress={() => router.push("/auth/login")}>
+                            Already have an account? Login
+                        </Button>
+                    </View>
+
                 </View>
             </Surface>
         </AuthScreenWrapper>
